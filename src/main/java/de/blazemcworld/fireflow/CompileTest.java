@@ -5,15 +5,14 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.node.NodeOutput;
 import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
+import de.blazemcworld.fireflow.node.impl.StructNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
 import de.blazemcworld.fireflow.node.impl.lists.ListAppendNode;
 import de.blazemcworld.fireflow.node.impl.variable.GetVariableNode;
 import de.blazemcworld.fireflow.node.impl.variable.LocalVariableScope;
 import de.blazemcworld.fireflow.node.impl.variable.SetVariableNode;
-import de.blazemcworld.fireflow.value.ListValue;
-import de.blazemcworld.fireflow.value.NumberValue;
-import de.blazemcworld.fireflow.value.SignalValue;
-import de.blazemcworld.fireflow.value.TextValue;
+import de.blazemcworld.fireflow.value.*;
+import it.unimi.dsi.fastutil.Pair;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -132,14 +131,71 @@ public class CompileTest {
         return entry;
     }
 
-    public static void main(String[] args) {
+    public static Instruction structTest() throws NoSuchFieldException {
+        StructValue structType = StructValue.get("moner", List.of(
+                Pair.of("aaa", TextValue.INSTANCE),
+                Pair.of("bbb", NumberValue.INSTANCE),
+                Pair.of("ccc", NumberValue.INSTANCE)
+        ));
+
+        FunctionDefinition doSomethingWithMoner = new FunctionDefinition("doSomethingWithMoner", List.of(
+                new NodeOutput("moner", structType),
+                new NodeOutput("ddd", NumberValue.INSTANCE)
+        ), List.of(
+                new NodeInput("newMoner", structType)
+        ));
+
+        AddNumbersNode adder = new AddNumbersNode();
+        adder.inputs.getFirst().connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "bbb"));
+        adder.inputs.get(1).connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "ccc"));
+
+        StructNode.CreateNode newStructNode = StructNode.get(structType).newCreateNode();
+        newStructNode.inputs.getFirst().connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "aaa"));
+        newStructNode.inputs.get(1).connectValue(adder.outputs.getFirst());
+        newStructNode.inputs.get(2).connectValue(doSomethingWithMoner.fnInputs.get(1));
+
+        doSomethingWithMoner.fnOutputs.getFirst().connectValue(newStructNode.getOut());
+
+        StructNode.CreateNode structNode = StructNode.get(structType).newCreateNode();
+        structNode.inputs.getFirst().inset("bruh");
+        structNode.inputs.get(1).inset(77);
+        structNode.inputs.get(2).inset(88);
+
+        SetVariableNode initStructVar = new SetVariableNode(LocalVariableScope.INSTANCE, structType);
+        NodeInput entry = initStructVar.inputs.getFirst();
+        initStructVar.inputs.get(1).inset("myMoner");
+        initStructVar.inputs.get(2).connectValue(structNode.getOut());
+
+        FunctionDefinition.Call call = doSomethingWithMoner.createCall();
+        GetVariableNode getStructVar = new GetVariableNode(LocalVariableScope.INSTANCE, structType);
+        getStructVar.inputs.getFirst().inset("myMoner");
+        call.inputs.getFirst().connectValue(getStructVar.outputs.getFirst());
+        call.inputs.get(1).inset(99);
+
+        SetVariableNode resetStructVar = new SetVariableNode(LocalVariableScope.INSTANCE, structType);
+        resetStructVar.inputs.get(1).inset("myMoner");
+        resetStructVar.inputs.get(2).connectValue(call.outputs.getFirst());
+
+        initStructVar.outputs.getFirst().connectSignal(resetStructVar.inputs.getFirst());
+        return entry;
+    }
+
+    public static void main(String[] args) throws Exception {
         NodeCompiler compiler = new NodeCompiler("Something");
-        Instruction entry = tripleAdderFnTest();
+        Instruction entry = structTest();
 
         compiler.prepare(entry);
         String entrypoint = compiler.markRoot(entry);
 
         byte[] bytes = compiler.compile();
+        /*
+        try (var stream = new FileOutputStream("Something.class")) {
+            stream.write(bytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        */
+
         ByteClassLoader loader = new ByteClassLoader(NodeCompiler.class.getClassLoader());
         Class<?> c = loader.define(compiler.className, bytes);
 

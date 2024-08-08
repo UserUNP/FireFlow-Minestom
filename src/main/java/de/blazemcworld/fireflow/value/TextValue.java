@@ -49,8 +49,8 @@ public class TextValue implements Value {
                         new JumpInsnNode(Opcodes.IFGT, cast),
                         new InsnNode(Opcodes.POP),
                         new LdcInsnNode(""),
-                        cast,
                         new JumpInsnNode(Opcodes.GOTO, end),
+                        cast,
                         new TypeInsnNode(Opcodes.CHECKCAST, "java/lang/String"),
                         end
                 )
