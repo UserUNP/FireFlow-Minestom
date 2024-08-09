@@ -4,7 +4,6 @@ import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
-import de.blazemcworld.fireflow.node.NodeOutput;
 import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.format.TextColor;
 import org.objectweb.asm.Opcodes;
@@ -55,22 +54,6 @@ public class StructValue implements Value {
         out.add(new IntInsnNode(Opcodes.BIPUSH, types.size()));
         out.add(new TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/Object"));
         return out;
-    }
-
-    public NodeOutput getField(NodeOutput struct, String name) throws NoSuchFieldException {
-        for (int i = 0; i < types.size(); i++) {
-            Pair<String, Value> pair = types.get(i);
-            if (!pair.left().equals(name)) continue;
-            Value type = pair.right();
-            NodeOutput o = new NodeOutput(name, type);
-            o.setInstruction(new MultiInstruction(Type.getType("Ljava/lang/Object;"),
-                    struct,
-                    new RawInstruction(Type.VOID_TYPE, new LdcInsnNode(i)),
-                    type.cast(new RawInstruction(Type.VOID_TYPE, new InsnNode(Opcodes.AALOAD)))
-            ));
-            return o;
-        }
-        throw new NoSuchFieldException("No such field " + name + " for struct " + this.name);
     }
 
     @Override

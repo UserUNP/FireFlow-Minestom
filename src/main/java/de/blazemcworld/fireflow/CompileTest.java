@@ -5,9 +5,10 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.node.NodeOutput;
 import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
-import de.blazemcworld.fireflow.node.impl.StructNode;
+import de.blazemcworld.fireflow.node.impl.struct.StructNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
 import de.blazemcworld.fireflow.node.impl.lists.ListAppendNode;
+import de.blazemcworld.fireflow.node.impl.struct.UnpackStructNode;
 import de.blazemcworld.fireflow.node.impl.variable.GetVariableNode;
 import de.blazemcworld.fireflow.node.impl.variable.LocalVariableScope;
 import de.blazemcworld.fireflow.node.impl.variable.SetVariableNode;
@@ -131,7 +132,7 @@ public class CompileTest {
         return entry;
     }
 
-    public static Instruction structTest() throws NoSuchFieldException {
+    public static Instruction structTest() {
         StructValue structType = StructValue.get("moner", List.of(
                 Pair.of("aaa", TextValue.INSTANCE),
                 Pair.of("bbb", NumberValue.INSTANCE),
@@ -145,12 +146,15 @@ public class CompileTest {
                 new NodeInput("newMoner", structType)
         ));
 
+        UnpackStructNode unpacked = new UnpackStructNode(structType);
+        unpacked.inputs.getFirst().connectValue(doSomethingWithMoner.fnInputs.getFirst());
+
         AddNumbersNode adder = new AddNumbersNode();
-        adder.inputs.getFirst().connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "bbb"));
-        adder.inputs.get(1).connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "ccc"));
+        adder.inputs.getFirst().connectValue(unpacked.outputs.get(1));
+        adder.inputs.get(1).connectValue(unpacked.outputs.get(2));
 
         StructNode.CreateNode newStructNode = StructNode.get(structType).newCreateNode();
-        newStructNode.inputs.getFirst().connectValue(structType.getField(doSomethingWithMoner.fnInputs.getFirst(), "aaa"));
+        newStructNode.inputs.getFirst().connectValue(unpacked.outputs.getFirst());
         newStructNode.inputs.get(1).connectValue(adder.outputs.getFirst());
         newStructNode.inputs.get(2).connectValue(doSomethingWithMoner.fnInputs.get(1));
 
@@ -180,7 +184,7 @@ public class CompileTest {
         return entry;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         NodeCompiler compiler = new NodeCompiler("Something");
         Instruction entry = structTest();
 
@@ -189,12 +193,13 @@ public class CompileTest {
 
         byte[] bytes = compiler.compile();
         /*
-        try (var stream = new FileOutputStream("Something.class")) {
+        try (var stream = new java.io.FileOutputStream("Something.class")) {
             stream.write(bytes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        */
+         */
+
 
         ByteClassLoader loader = new ByteClassLoader(NodeCompiler.class.getClassLoader());
         Class<?> c = loader.define(compiler.className, bytes);

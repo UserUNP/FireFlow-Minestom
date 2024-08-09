@@ -1,4 +1,4 @@
-package de.blazemcworld.fireflow.node.impl;
+package de.blazemcworld.fireflow.node.impl.struct;
 
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;

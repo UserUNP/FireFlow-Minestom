@@ -54,7 +54,7 @@ public class Space {
         code.setTimeRate(0);
 
         EventNode<InstanceEvent> playEvents = play.eventNode();
-        EventNode<InstanceEvent> codeEvents = play.eventNode();
+        EventNode<InstanceEvent> codeEvents = code.eventNode();
 
         playEvents.addListener(PlayerSpawnEvent.class, event -> {
             isUnused = false;
