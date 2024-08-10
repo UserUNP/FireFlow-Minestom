@@ -37,7 +37,7 @@ public class GetVariableNode extends Node {
 
     @Override
     public String getBaseName() {
-        return "Get Variable";
+        return "Get " + scope.getName() + " Variable";
     }
 
     @Override

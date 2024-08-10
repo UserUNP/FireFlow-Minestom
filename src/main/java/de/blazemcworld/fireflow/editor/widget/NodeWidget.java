@@ -138,7 +138,7 @@ public class NodeWidget implements Widget {
     @Override
     public void rightClick(Vec cursor, Player player, CodeEditor editor) {
         Vec offset = origin.sub(cursor);
-        border.color(NamedTextColor.AQUA);
+        border.color(NamedTextColor.GREEN);
         editor.setAction(player, new MoveNodeAction(offset, this, player, editor));
     }
 
@@ -153,4 +153,6 @@ public class NodeWidget implements Widget {
         title.remove();
         border.remove();
     }
+
+    public Bounds getBounds() { return bounds; }
 }

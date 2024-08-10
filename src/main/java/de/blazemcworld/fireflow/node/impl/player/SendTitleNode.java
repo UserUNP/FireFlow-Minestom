@@ -1,4 +1,4 @@
-package de.blazemcworld.fireflow.node.impl;
+package de.blazemcworld.fireflow.node.impl.player;
 
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
@@ -12,29 +12,36 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodInsnNode;
 
-public class SendMessageNode extends Node {
-
-    public SendMessageNode() {
-        super("Send Message");
+public class SendTitleNode extends Node {
+    public SendTitleNode() {
+        super("Send Title");
 
         NodeInput signal = input("Signal", SignalValue.INSTANCE);
         NodeInput player = input("Player", PlayerValue.INSTANCE);
-        NodeInput message = input("Message", MessageValue.INSTANCE);
+        NodeInput title = input("Title", MessageValue.INSTANCE);
+        NodeInput subtitle = input("Subtitle", MessageValue.INSTANCE);
         NodeOutput next = output("Next", SignalValue.INSTANCE);
 
         signal.setInstruction(new MultiInstruction(
                 Type.VOID_TYPE,
                 PlayerValue.use(player, new MultiInstruction(Type.VOID_TYPE,
-                        message,
+                        title,
+                        subtitle,
+                        new RawInstruction(Type.VOID_TYPE, new MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/kyori/adventure/title/Title",
+                                "title",
+                                "(Lnet/kyori/adventure/text/Component;Lnet/kyori/adventure/text/Component;)Lnet/kyori/adventure/title/Title;",
+                                true
+                        )),
                         new RawInstruction(Type.VOID_TYPE, new MethodInsnNode(
                                 Opcodes.INVOKEINTERFACE,
                                 "net/kyori/adventure/audience/Audience",
-                                "sendMessage",
-                                "(Lnet/kyori/adventure/text/Component;)V"
+                                "showTitle",
+                                "(Lnet/kyori/adventure/title/Title;)V"
                         ))
                 ), null),
                 next
         ));
     }
-
 }

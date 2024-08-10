@@ -2,13 +2,18 @@ package de.blazemcworld.fireflow.node;
 
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
-import de.blazemcworld.fireflow.node.impl.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
 import de.blazemcworld.fireflow.node.impl.event.PlayerJoinEvent;
 import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
 import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
+import de.blazemcworld.fireflow.node.impl.player.*;
+import de.blazemcworld.fireflow.node.impl.variable.*;
+import de.blazemcworld.fireflow.value.NumberValue;
+import de.blazemcworld.fireflow.value.PlayerValue;
+import de.blazemcworld.fireflow.value.TextValue;
+import de.blazemcworld.fireflow.value.Value;
 import de.blazemcworld.fireflow.node.impl.variable.GetVariableNode;
 import de.blazemcworld.fireflow.node.impl.variable.LocalVariableScope;
 import de.blazemcworld.fireflow.node.impl.variable.SetVariableNode;
@@ -30,7 +35,25 @@ public class NodeCategory {
 
     public static final NodeCategory VARIABLES = new NodeCategory("Variables", ROOT, List.of(
             () -> new GetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new SetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE)
+            () -> new GetVariableNode(PersistentVariableScope.INSTANCE, NumberValue.INSTANCE),
+            () -> new GetVariableNode(SpaceVariableScope.INSTANCE, NumberValue.INSTANCE),
+            () -> new SetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE),
+            () -> new SetVariableNode(PersistentVariableScope.INSTANCE, NumberValue.INSTANCE),
+            () -> new SetVariableNode(SpaceVariableScope.INSTANCE, NumberValue.INSTANCE)
+    ));
+
+    public static final NodeCategory PLAYERS = new NodeCategory("Players", ROOT, List.of(
+            ClearTitleNode::new,
+            KillPlayerNode::new,
+            SendActionBarNode::new,
+            SendTitleNode::new,
+            SetAllowPlayerFlyingNode::new,
+            SetExperienceNode::new,
+            SetLevelNode::new,
+            SetPlayerFlyingNode::new,
+            SetPlayerFoodNode::new,
+            SetPlayerHealthNode::new,
+            SetPlayerSaturationNode::new
     ));
 
     public static final Map<Value, NodeCategory> EXTRACTIONS = new HashMap<>();

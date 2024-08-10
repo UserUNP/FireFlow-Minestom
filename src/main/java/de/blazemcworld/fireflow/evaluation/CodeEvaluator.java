@@ -16,11 +16,14 @@ import net.minestom.server.event.trait.InstanceEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CodeEvaluator {
 
     public CodeEditor editor;
+    public Map<String, Object> variables = new HashMap<>();
     public EventNode<InstanceEvent> events;
     public NodeCompiler compiler;
     public final Space space;

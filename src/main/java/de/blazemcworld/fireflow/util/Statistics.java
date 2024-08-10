@@ -11,6 +11,12 @@ public class Statistics {
         player.setFlying(false);
         player.setAllowFlying(false);
         player.getInventory().clear();
+        player.setExp(0);
+        player.setFood(20);
+        player.setFoodSaturation(20);
+        player.setInvulnerable(false);
+        player.setLevel(0);
+        player.setHealth(20);
     }
 
 }

@@ -1,10 +1,12 @@
 package de.blazemcworld.fireflow.editor;
 
 import de.blazemcworld.fireflow.FireFlow;
+import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
 import de.blazemcworld.fireflow.editor.widget.NodeCategoryWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeInputWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeWidget;
 import de.blazemcworld.fireflow.editor.widget.WireWidget;
+import de.blazemcworld.fireflow.editor.action.DeleteSelectionAction;
 import de.blazemcworld.fireflow.node.Node;
 import de.blazemcworld.fireflow.node.NodeCategory;
 import de.blazemcworld.fireflow.node.NodeList;
@@ -81,7 +83,7 @@ public class CodeEditor {
             }
             Widget selected = getWidget(event.getPlayer(), cursor);
             if (selected == null) {
-                widgets.add(new NodeCategoryWidget(cursor, inst, NodeCategory.ROOT));
+                this.setAction(event.getPlayer(), new MoveSelectionAction(inst, cursor, event.getPlayer(), this));
                 return;
             }
             selected.rightClick(cursor, event.getPlayer(), this);
@@ -94,7 +96,10 @@ public class CodeEditor {
                 return;
             }
             Widget selected = getWidget(event.getPlayer(), cursor);
-            if (selected == null) return;
+            if (selected == null) {
+                widgets.add(new NodeCategoryWidget(cursor, inst, NodeCategory.ROOT));
+                return;
+            }
             selected.swapItem(cursor, event.getPlayer(), this);
         });
 
@@ -106,7 +111,10 @@ public class CodeEditor {
                     return;
                 }
                 Widget selected = getWidget(player, cursor);
-                if (selected == null) return;
+                if (selected == null) {
+                    this.setAction(player, new DeleteSelectionAction(inst, cursor, player, this));
+                    return;
+                }
                 selected.leftClick(cursor, player, this);
             }
         });
@@ -275,12 +283,25 @@ public class CodeEditor {
         }
 
         for (Runnable r : connectNodes) r.run();
+
+        while (widgets.contains(null)) widgets.remove(null);
     }
 
     public List<Node> getNodes() {
         List<Node> list = new ArrayList<>();
         for (Widget w : widgets) {
             if (w instanceof NodeWidget node) list.add(node.node);
+        }
+        return list;
+    }
+
+    public List<NodeWidget> getNodesInBound(Bounds bounds) {
+        List<NodeWidget> list = new ArrayList<>();
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget node) {
+                Bounds nodeBounds = node.getBounds();
+                if (bounds.includes2d(nodeBounds.min) && bounds.includes2d(nodeBounds.max)) list.add(node);
+            }
         }
         return list;
     }
