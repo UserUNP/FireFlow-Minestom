@@ -14,7 +14,7 @@ public class AllValues {
             TextValue.INSTANCE
     );
 
-    public static final List<Value> any = new ArrayList<>();
+    public static final List<Value> any = new ArrayList<>(dataOnly.size());
     static {
         any.add(SignalValue.INSTANCE);
         any.addAll(dataOnly);

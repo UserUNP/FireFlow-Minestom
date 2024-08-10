@@ -5,15 +5,14 @@ import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
 import de.blazemcworld.fireflow.node.impl.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
 import de.blazemcworld.fireflow.node.impl.event.PlayerJoinEvent;
+import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
+import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.GetVariableNode;
 import de.blazemcworld.fireflow.node.impl.variable.LocalVariableScope;
 import de.blazemcworld.fireflow.node.impl.variable.SetVariableNode;
-import de.blazemcworld.fireflow.value.NumberValue;
-import de.blazemcworld.fireflow.value.PlayerValue;
-import de.blazemcworld.fireflow.value.TextValue;
-import de.blazemcworld.fireflow.value.Value;
+import de.blazemcworld.fireflow.value.*;
 import it.unimi.dsi.fastutil.Pair;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,9 +40,30 @@ public class NodeCategory {
     ));
 
     public static final NodeCategory TEXT_EXTRACTIONS = new NodeCategory("Text Extractions", TextValue.INSTANCE, List.of(
-        TextToMessageNode::new
+            TextToMessageNode::new
     ));
 
+    public static @Nullable NodeCategory get(Value type) {
+        if (type instanceof ListValue) return getListExtractions((ListValue) type);
+        else if (type instanceof StructValue) return getStructExtractions((StructValue) type);
+        else return EXTRACTIONS.get(type);
+    }
+
+    private static NodeCategory getListExtractions(ListValue type) {
+        return new NodeCategory(type.getFullName() + " Extractions", type, List.of(
+                () -> new ListSizeNode(type)
+        ));
+    }
+
+    private static NodeCategory getStructExtractions(StructValue type) {
+        ArrayList<Supplier<Node>> list = new ArrayList<>(type.types.size());
+        for (int i = 0; i < type.types.size(); i++) {
+            Pair<String, Value> pair = type.types.get(i);
+            final int finalI = i;
+            list.add(() -> new StructFieldNode(type, finalI, pair));
+        }
+        return new NodeCategory(type.getBaseName() + " Extractions", type, list);
+    }
 
     public final String name;
     public final @Nullable NodeCategory parent;

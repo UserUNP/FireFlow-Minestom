@@ -106,7 +106,7 @@ public class CreateWireAction implements EditorAction {
     @Override
     public void swapItem(Vec cursor) {
         if (nodeOutput == null || nodeOutput.type == SignalValue.INSTANCE) return;
-        NodeCategory category = NodeCategory.EXTRACTIONS.get(nodeOutput.type);
+        NodeCategory category = NodeCategory.get(nodeOutput.type);
         if (category == null) return;
 
         NodeCategoryWidget selector = new NodeCategoryWidget(cursor, editor.inst, category);

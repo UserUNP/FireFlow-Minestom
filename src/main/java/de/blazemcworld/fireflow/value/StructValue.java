@@ -5,7 +5,9 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import it.unimi.dsi.fastutil.Pair;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -18,7 +20,7 @@ public class StructValue implements Value {
 
     private static final WeakHashMap<String, StructValue> cache = new WeakHashMap<>();
     public static StructValue get(String name, List<Pair<String, Value>> types) {
-        return cache.computeIfAbsent(name, n -> {
+        return cache.computeIfAbsent(name, _n -> {
             StructValue type = new StructValue(name);
             type.types = new ArrayList<>(types);
             return type;
@@ -33,13 +35,13 @@ public class StructValue implements Value {
     }
 
     @Override
-    public String getName() {
+    public String getBaseName() {
         return name;
     }
 
     @Override
     public TextColor getColor() {
-        return null;
+        return NamedTextColor.GOLD;
     }
 
     @Override
@@ -80,5 +82,20 @@ public class StructValue implements Value {
     @Override
     public Instruction wrapPrimitive(Instruction value) {
         return value;
+    }
+
+    @Override
+    public Object prepareInset(String message) {
+        return null;
+    }
+
+    @Override
+    public void writeInset(NetworkBuffer buffer, Object inset) {
+        throw new IllegalStateException("Struct (" + name + ") values can not be inset!");
+    }
+
+    @Override
+    public Object readInset(NetworkBuffer buffer) {
+        throw new IllegalStateException("Struct (" + name + ") values can not be inset!");
     }
 }

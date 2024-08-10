@@ -15,8 +15,8 @@ import org.objectweb.asm.tree.LdcInsnNode;
 public class UnpackStructNode extends Node {
 
     public UnpackStructNode(StructValue type) {
-        super("Unpack " + type.getName());
-        NodeInput struct = input(type.getName(), type);
+        super("Unpack " + type.getBaseName());
+        NodeInput struct = input(type.getBaseName(), type);
         for (int i = 0; i < type.types.size(); i++) {
             Pair<String, Value> pair = type.types.get(i);
             Value fieldType = pair.right();
