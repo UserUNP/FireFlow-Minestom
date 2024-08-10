@@ -102,7 +102,7 @@ public class NodeCategoryWidget implements Widget {
 
     @Override
     public void leftClick(Vec cursor, Player player, CodeEditor editor) {
-        remove();
+        editor.remove(this);
     }
 
     @Override
