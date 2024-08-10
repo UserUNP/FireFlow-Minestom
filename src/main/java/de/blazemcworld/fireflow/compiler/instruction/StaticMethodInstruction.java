@@ -13,7 +13,11 @@ import java.util.List;
 public record StaticMethodInstruction(Class<?> owner, String method, Type returnType, List<Pair<Type, Instruction>> arguments) implements Instruction {
 
     @Override
-    public void prepare(NodeCompiler ctx) {}
+    public void prepare(NodeCompiler ctx) {
+        for (Pair<Type, Instruction> arg : arguments) {
+            ctx.prepare(arg.second());
+        }
+    }
 
     @Override
     public InsnList compile(NodeCompiler ctx) {
@@ -23,7 +27,7 @@ public record StaticMethodInstruction(Class<?> owner, String method, Type return
             paramTypes.add(arg.first());
             out.add(ctx.compile(arg.second()));
         }
-        out.add(new MethodInsnNode(Opcodes.INVOKESTATIC, owner.getName().replace('.', '/'), method, Type.getMethodDescriptor(returnType, paramTypes.toArray(new Type[0]))));
+        out.add(new MethodInsnNode(Opcodes.INVOKESTATIC, owner.getName().replace('.', '/'), method, Type.getMethodDescriptor(returnType, paramTypes.toArray(new Type[0])), owner.isInterface()));
         return out;
     }
 

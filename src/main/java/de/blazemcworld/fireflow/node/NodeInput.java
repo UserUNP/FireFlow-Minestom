@@ -38,6 +38,10 @@ public class NodeInput implements Instruction {
         this.inset = value;
     }
 
+    public Object getInset() {
+        return inset;
+    }
+
     public void setInstruction(Instruction instructions) {
         if (type != SignalValue.INSTANCE) throw new IllegalStateException("Can only set instruction on signal inputs!");
         this.instruction = instructions;

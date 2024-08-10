@@ -16,7 +16,7 @@ public class TextWidget implements Widget {
     private final InstanceContainer inst;
     private final Entity display = new Entity(EntityType.TEXT_DISPLAY);
     private final TextDisplayMeta meta = (TextDisplayMeta) display.getEntityMeta();
-    private final Vec position;
+    public Vec position;
 
     public TextWidget(Vec position, InstanceContainer inst, Component text) {
         this.inst = inst;

@@ -4,7 +4,9 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SpaceManager {
 
@@ -18,8 +20,8 @@ public class SpaceManager {
         });
     }
 
-    public static Space getSpace(int id) {
-        return spaces.computeIfAbsent(id, Space::new);
+    public static Space getSpace(SpaceInfo info) {
+        return spaces.computeIfAbsent(info.id, id -> new Space(info));
     }
 
     public static void forget(int id) {
@@ -33,5 +35,19 @@ public class SpaceManager {
             }
         }
         return null;
+    }
+
+    public static List<SpaceInfo> activeInfo() {
+        List<SpaceInfo> list = new ArrayList<>();
+        for (Space space : spaces.values()) {
+            if (!space.play.getPlayers().isEmpty() || !space.code.getPlayers().isEmpty()) list.add(space.info);
+        }
+        return list;
+    }
+
+    public static int playerCount(int id) {
+        Space space = spaces.get(id);
+        if (space == null) return 0;
+        return space.play.getPlayers().size() + space.code.getPlayers().size();
     }
 }

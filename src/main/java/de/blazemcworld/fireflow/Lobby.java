@@ -1,6 +1,13 @@
 package de.blazemcworld.fireflow;
 
+import de.blazemcworld.fireflow.inventory.MySpacesInventory;
+import de.blazemcworld.fireflow.inventory.ServerListInventory;
+import de.blazemcworld.fireflow.inventory.SpacesListInventory;
+import de.blazemcworld.fireflow.network.RemoteInfo;
+import de.blazemcworld.fireflow.space.SpaceInfo;
 import de.blazemcworld.fireflow.space.SpaceManager;
+import de.blazemcworld.fireflow.space.SpacesIndex;
+import de.blazemcworld.fireflow.util.Config;
 import de.blazemcworld.fireflow.util.Statistics;
 import de.blazemcworld.fireflow.util.Transfer;
 import net.kyori.adventure.text.Component;
@@ -8,6 +15,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
+import net.minestom.server.entity.Player;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
 import net.minestom.server.event.item.ItemDropEvent;
@@ -23,6 +31,11 @@ import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 public class Lobby {
 
     public static final InstanceContainer instance = MinecraftServer.getInstanceManager().createInstanceContainer();
@@ -31,6 +44,22 @@ public class Lobby {
             .customName(Component.text("My Spaces").color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false))
             .lore(
                     Component.text("Manage your spaces").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                    Component.text("using this item.").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
+            )
+            .build();
+
+    private static final ItemStack ACTIVE_SPACES = ItemStack.builder(Material.BLAZE_POWDER)
+            .customName(Component.text("Active Spaces").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false))
+            .lore(
+                    Component.text("Browse currently played").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                    Component.text("spaces using this item.").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
+            )
+            .build();
+
+    private static final ItemStack OTHER_SERVERS = ItemStack.builder(Material.WARPED_SIGN)
+            .customName(Component.text("Other Servers").color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false))
+            .lore(
+                    Component.text("Browse all servers").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
                     Component.text("using this item.").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
             )
             .build();
@@ -55,9 +84,34 @@ public class Lobby {
         });
 
         events.addListener(PlayerSpawnEvent.class, event -> {
-            Statistics.reset(event.getPlayer());
-            PlayerInventory inv = event.getPlayer().getInventory();
+            Player player = event.getPlayer();
+            Statistics.reset(player);
+            PlayerInventory inv = player.getInventory();
             inv.setItemStack(0, MY_SPACES);
+            inv.setItemStack(4, ACTIVE_SPACES);
+            if (Config.store.network().enabled()) inv.setItemStack(8, OTHER_SERVERS);
+
+            player.getPlayerConnection().fetchCookie("fireflow_code_space").thenAccept(bytes -> {
+                if (bytes == null || bytes.length == 0) return;
+                player.getPlayerConnection().storeCookie("fireflow_code_space", new byte[0]);
+                int id = ByteBuffer.wrap(bytes).getInt();
+                for (SpaceInfo info : SpacesIndex.spaces) {
+                    if (info.id != id) continue;
+                    if (!info.owner.equals(player.getUuid()) && !info.contributors.contains(player.getUuid())) return;
+                    Transfer.movePlayer(player, SpaceManager.getSpace(info).code);
+                    return;
+                }
+            });
+            player.getPlayerConnection().fetchCookie("fireflow_play_space").thenAccept(bytes -> {
+                if (bytes == null || bytes.length == 0) return;
+                player.getPlayerConnection().storeCookie("fireflow_play_space", new byte[0]);
+                int id = ByteBuffer.wrap(bytes).getInt();
+                for (SpaceInfo info : SpacesIndex.spaces) {
+                    if (info.id != id) continue;
+                    Transfer.movePlayer(player, SpaceManager.getSpace(info).play);
+                    return;
+                }
+            });
         });
 
         events.addListener(PlayerUseItemEvent.class, event -> {
@@ -78,7 +132,18 @@ public class Lobby {
 
     private static void rightClick(PlayerInstanceEvent event) {
         if (event.getPlayer().getItemInMainHand().isSimilar(MY_SPACES)) {
-            Transfer.movePlayer(event.getPlayer(), SpaceManager.getSpace(0).play);
+            MySpacesInventory.open(event.getPlayer());
+        }
+        if (event.getPlayer().getItemInMainHand().isSimilar(ACTIVE_SPACES)) {
+            List<SpaceInfo> active = new ArrayList<>();
+            active.addAll(SpaceManager.activeInfo());
+            active.addAll(RemoteInfo.active);
+            active.sort(Comparator.<SpaceInfo, Integer>comparing((info) -> info.server == null ? SpaceManager.playerCount(info.id) : info.remotePlayers)
+                    .thenComparing(s -> s.title));
+            SpacesListInventory.open(event.getPlayer(), "Active Spaces", active);
+        }
+        if (event.getPlayer().getItemInMainHand().isSimilar(OTHER_SERVERS)) {
+            ServerListInventory.open(event.getPlayer());
         }
     }
 

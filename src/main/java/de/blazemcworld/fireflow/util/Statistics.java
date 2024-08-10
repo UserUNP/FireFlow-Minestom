@@ -6,6 +6,7 @@ import net.minestom.server.entity.Player;
 public class Statistics {
 
     public static void reset(Player player) {
+        player.closeInventory();
         player.setGameMode(GameMode.ADVENTURE);
         player.setFlying(false);
         player.setAllowFlying(false);

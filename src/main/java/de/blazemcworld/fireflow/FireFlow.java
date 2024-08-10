@@ -1,8 +1,9 @@
 package de.blazemcworld.fireflow;
 
-import de.blazemcworld.fireflow.commands.CodeCommand;
-import de.blazemcworld.fireflow.commands.LobbyCommand;
-import de.blazemcworld.fireflow.commands.PlayCommand;
+import de.blazemcworld.fireflow.commands.*;
+import de.blazemcworld.fireflow.network.ApiServer;
+import de.blazemcworld.fireflow.network.RemoteInfo;
+import de.blazemcworld.fireflow.space.SpacesIndex;
 import de.blazemcworld.fireflow.util.Config;
 import de.blazemcworld.fireflow.util.PlayerExitInstanceEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -34,11 +35,22 @@ public class FireFlow {
         MinecraftServer.setBrandName("FireFlow");
         MojangAuth.init();
         ConsoleHandler.init();
+        SpacesIndex.init();
 
         CommandManager cmds = MinecraftServer.getCommandManager();
         cmds.register(new PlayCommand());
         cmds.register(new CodeCommand());
         cmds.register(new LobbyCommand());
+        cmds.register(new ReloadCommand());
+        cmds.register(new JoinCommand());
+        cmds.register(new SetTitleCommand());
+        cmds.register(new SetIconCommand());
+        cmds.register(new ContributorCommand());
+
+        if (Config.store.network().enabled()) {
+            ApiServer.init();
+            RemoteInfo.init();
+        }
 
         GlobalEventHandler events = MinecraftServer.getGlobalEventHandler();
 
@@ -65,8 +77,10 @@ public class FireFlow {
             event.setResponseData(res);
         });
 
-        server.start("0.0.0.0", 25565);
-        LOGGER.info("Ready!");
+        TransferPacketPatcher.apply();
+
+        server.start("0.0.0.0", Config.store.port());
+        LOGGER.info("Started on port {}!", Config.store.port());
     }
 
 }

@@ -207,7 +207,7 @@ public class CompileTest {
         try {
             CompiledNode inst = (CompiledNode) c.getDeclaredConstructor().newInstance();
 
-            inst.setCpu(10_000_000);
+            //inst.setCpu(10_000_000); TODO: add option for tests, or remove CompileTest
             try {
                 c.getDeclaredMethod(entrypoint).invoke(inst);
             } catch (InvocationTargetException invoke) {

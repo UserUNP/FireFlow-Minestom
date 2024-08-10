@@ -5,6 +5,7 @@ import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.node.Node;
 import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.TextValue;
 import de.blazemcworld.fireflow.value.Value;
 import it.unimi.dsi.fastutil.Pair;
@@ -14,8 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 public class GetVariableNode extends Node {
+
+    private final Value type;
+    private final VariableScope scope;
+
     public GetVariableNode(VariableScope scope, Value type) {
-        super("Get " + scope.getName() + " Variable");
+        super("Get " + scope.getName() + " " + type.getFullName() + " Variable");
+        this.scope = scope;
+        this.type = type;
+
         NodeInput name = input("Name", TextValue.INSTANCE);
         NodeOutput value = output("Value", type);
 
@@ -25,5 +33,25 @@ public class GetVariableNode extends Node {
                         List.of(Pair.of(Type.getType(Object.class), name))
                 ))
         ));
+    }
+
+    @Override
+    public String getBaseName() {
+        return "Get Variable";
+    }
+
+    @Override
+    public List<Value> generics() {
+        return List.of(type);
+    }
+
+    @Override
+    public Node fromGenerics(List<Value> generics) {
+        return new GetVariableNode(scope, generics.getFirst());
+    }
+
+    @Override
+    public List<List<Value>> possibleGenerics() {
+        return List.of(AllValues.dataOnly);
     }
 }

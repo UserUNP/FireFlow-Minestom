@@ -2,6 +2,7 @@ package de.blazemcworld.fireflow.editor.widget;
 
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.Widget;
+import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.InstanceContainer;
 
@@ -41,5 +42,12 @@ public class RectWidget implements Widget  {
         b.remove();
         c.remove();
         d.remove();
+    }
+
+    public void color(TextColor color) {
+        a.color = color;
+        b.color = color;
+        c.color = color;
+        d.color = color;
     }
 }

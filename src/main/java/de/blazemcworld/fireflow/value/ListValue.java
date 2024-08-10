@@ -5,6 +5,7 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -26,8 +27,8 @@ public class ListValue implements Value {
     }
 
     @Override
-    public String getName() {
-        return "List<" + type.getName() + ">";
+    public String getBaseName() {
+        return "List";
     }
 
     @Override
@@ -77,5 +78,31 @@ public class ListValue implements Value {
         return value;
     }
 
+    @Override
+    public Object prepareInset(String message) {
+        return null;
+    }
+
+    @Override
+    public void writeInset(NetworkBuffer buffer, Object inset) {
+        throw new IllegalStateException("List values can not be inset!");
+    }
+
+    @Override
+    public Object readInset(NetworkBuffer buffer) {
+        throw new IllegalStateException("List values can not be inset!");
+    }
+
+    public Value fromGenerics(List<Value> generics) {
+        return ListValue.get(generics.getFirst());
+    }
+
+    public List<Value> toGenerics() {
+        return List.of(type);
+    }
+
+    public List<List<Value>> possibleGenerics() {
+        return List.of(AllValues.dataOnly);
+    }
 
 }

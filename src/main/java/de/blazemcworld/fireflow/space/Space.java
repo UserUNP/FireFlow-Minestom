@@ -1,6 +1,7 @@
 package de.blazemcworld.fireflow.space;
 
 import de.blazemcworld.fireflow.editor.CodeEditor;
+import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.BlockVec;
 import net.minestom.server.event.EventNode;
@@ -16,21 +17,22 @@ import net.minestom.server.timer.TaskSchedule;
 
 public class Space {
 
-    public final int id;
     public final InstanceContainer play;
     public final InstanceContainer code;
     public final Task saveTask;
+    public final SpaceInfo info;
     private boolean isUnused = false;
     private final CodeEditor editor;
+    private CodeEvaluator evaluator;
 
-    public Space(int id) {
-        this.id = id;
+    public Space(SpaceInfo info) {
+        this.info = info;
 
         InstanceManager manager = MinecraftServer.getInstanceManager();
         play = manager.createInstanceContainer();
         code = manager.createInstanceContainer();
 
-        play.setChunkLoader(new AnvilLoader("spaces/" + id));
+        play.setChunkLoader(new AnvilLoader("spaces/" + info.id));
 
         play.setChunkSupplier(LightingChunk::new);
         code.setChunkSupplier(LightingChunk::new);
@@ -64,11 +66,12 @@ public class Space {
         });
 
         editor = new CodeEditor(this);
+        evaluator = new CodeEvaluator(this, editor);
 
         saveTask = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
             if (isUnused) {
                 unregister();
-                SpaceManager.forget(id);
+                SpaceManager.forget(info.id);
                 return TaskSchedule.stop();
             }
             if (play.getPlayers().isEmpty() && code.getPlayers().isEmpty()) {
@@ -89,6 +92,11 @@ public class Space {
 
     private void save() {
         play.saveChunksToStorage();
+        editor.save();
     }
 
+    public void reload() {
+        evaluator.stop(true);
+        evaluator = new CodeEvaluator(this, editor);
+    }
 }

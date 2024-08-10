@@ -6,6 +6,7 @@ import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.node.Node;
 import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.ListValue;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
@@ -16,8 +17,11 @@ import java.util.List;
 
 public class ListAppendNode extends Node {
 
+    private final Value type;
+
     public ListAppendNode(Value type) {
-        super("Append to List(" + type.getName() + ")");
+        super("Append to List<" + type.getFullName() + ">");
+        this.type = type;
 
         ListValue listType = ListValue.get(type);
         NodeInput signal = input("Signal", SignalValue.INSTANCE);
@@ -35,4 +39,18 @@ public class ListAppendNode extends Node {
         ));
     }
 
+    @Override
+    public List<Value> generics() {
+        return List.of(type);
+    }
+
+    @Override
+    public List<List<Value>> possibleGenerics() {
+        return List.of(AllValues.dataOnly);
+    }
+
+    @Override
+    public Node fromGenerics(List<Value> generics) {
+        return new ListAppendNode(generics.getFirst());
+    }
 }

@@ -31,6 +31,7 @@ public class LineWidget implements Widget {
 
     public void update() {
         double dist = from.distance(to);
+        meta.setText(Component.text("-").color(color));
         meta.setScale(new Vec(dist * 8, 1, 1));
         float angle = (float) Math.atan2(to.y() - from.y(), from.x() - to.x());
         meta.setLeftRotation(new float[]{0, 0, (float) Math.sin(angle * 0.5), (float) Math.cos(angle * 0.5)});

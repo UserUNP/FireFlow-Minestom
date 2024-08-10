@@ -61,6 +61,7 @@ public class NodeCompiler {
     }
 
     public String markRoot(Instruction i) {
+        prepare(i);
         uses.put(i, 999);
         return names.computeIfAbsent(i, (_i) -> "m" + names.size());
     }

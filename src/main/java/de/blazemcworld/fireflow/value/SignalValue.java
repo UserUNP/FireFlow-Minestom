@@ -4,6 +4,7 @@ import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnList;
 
@@ -12,7 +13,7 @@ public class SignalValue implements Value {
     private SignalValue() {}
 
     @Override
-    public String getName() {
+    public String getBaseName() {
         return "Signal";
     }
 
@@ -39,5 +40,20 @@ public class SignalValue implements Value {
     @Override
     public Instruction wrapPrimitive(Instruction value) {
         throw new IllegalStateException("Signal inputs can not be used as instructions!");
+    }
+
+    @Override
+    public Object prepareInset(String message) {
+        return null;
+    }
+
+    @Override
+    public void writeInset(NetworkBuffer buffer, Object inset) {
+        throw new IllegalStateException("Signal inputs can not be inset!");
+    }
+
+    @Override
+    public Object readInset(NetworkBuffer buffer) {
+        throw new IllegalStateException("Signal inputs can not be inset!");
     }
 }

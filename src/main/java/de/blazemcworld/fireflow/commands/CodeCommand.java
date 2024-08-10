@@ -7,6 +7,8 @@ import de.blazemcworld.fireflow.util.Transfer;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.entity.Player;
 
+import java.util.UUID;
+
 public class CodeCommand extends Command {
 
     public CodeCommand() {
@@ -22,6 +24,19 @@ public class CodeCommand extends Command {
                 if (player.getInstance() == space.code) {
                     sender.sendMessage(Messages.error("You are already coding!"));
                     return;
+                }
+                if (!space.info.owner.equals(player.getUuid())) {
+                    boolean allowed = false;
+                    for (UUID contributor : space.info.contributors) {
+                        if (contributor.equals(player.getUuid())) {
+                            allowed = true;
+                            break;
+                        }
+                    }
+                    if (!allowed) {
+                        sender.sendMessage(Messages.error("You are not allowed to do that!"));
+                        return;
+                    }
                 }
                 Transfer.movePlayer(player, space.code);
             } else {

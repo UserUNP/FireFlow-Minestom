@@ -6,6 +6,7 @@ import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -16,7 +17,7 @@ public class TextValue implements Value {
     private TextValue() {}
 
     @Override
-    public String getName() {
+    public String getBaseName() {
         return "Text";
     }
 
@@ -60,5 +61,20 @@ public class TextValue implements Value {
     @Override
     public Instruction wrapPrimitive(Instruction value) {
         return value;
+    }
+
+    @Override
+    public Object prepareInset(String message) {
+        return message;
+    }
+
+    @Override
+    public void writeInset(NetworkBuffer buffer, Object inset) {
+        buffer.write(NetworkBuffer.STRING, (String) inset);
+    }
+
+    @Override
+    public Object readInset(NetworkBuffer buffer) {
+        return buffer.read(NetworkBuffer.STRING);
     }
 }

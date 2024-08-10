@@ -6,6 +6,7 @@ import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -16,7 +17,7 @@ public class ConditionValue implements Value {
     private ConditionValue() {}
 
     @Override
-    public String getName() {
+    public String getBaseName() {
         return "Condition";
     }
 
@@ -61,5 +62,22 @@ public class ConditionValue implements Value {
                         new MethodInsnNode(Opcodes.INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;")
                 )
         );
+    }
+
+    @Override
+    public Object prepareInset(String message) {
+        if (message.equalsIgnoreCase("true")) return true;
+        if (message.equalsIgnoreCase("false")) return false;
+        return null;
+    }
+
+    @Override
+    public void writeInset(NetworkBuffer buffer, Object inset) {
+        buffer.write(NetworkBuffer.BOOLEAN, (Boolean) inset);
+    }
+
+    @Override
+    public Object readInset(NetworkBuffer buffer) {
+        return buffer.read(NetworkBuffer.BOOLEAN);
     }
 }

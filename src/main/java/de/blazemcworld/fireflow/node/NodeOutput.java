@@ -12,6 +12,7 @@ public class NodeOutput implements Instruction {
     public final Value type;
     public NodeInput target;
     private Instruction instruction = null;
+    public final String id = Node.allocateId();
 
     public NodeOutput(String name, Value type) {
         this.name = name;
@@ -62,6 +63,10 @@ public class NodeOutput implements Instruction {
 
     public void connectSignal(NodeInput target) {
         if (type != SignalValue.INSTANCE) throw new IllegalStateException("Attempted to connect non signal value!");
+        if (target == null) {
+            this.target = null;
+            return;
+        }
         if (target.getType() != type) throw new IllegalStateException("Attempted to connect values of incompatible types!");
         this.target = target;
     }
