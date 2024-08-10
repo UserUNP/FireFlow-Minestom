@@ -15,7 +15,7 @@ import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class CodeEvaluator {
@@ -24,8 +24,8 @@ public class CodeEvaluator {
     public EventNode<InstanceEvent> events;
     public NodeCompiler compiler;
     public final Space space;
-    private final List<Runnable> prepare = new ArrayList<>();
-    private final List<Runnable> compile = new ArrayList<>();
+    private final List<Runnable> prepare = new LinkedList<>();
+    private final List<Runnable> compile = new LinkedList<>();
     private final Class<CompiledNode> compiledClass;
     public long cpuLeft = Config.store.limits().cpuPerTick();
     private boolean stopped = false;
