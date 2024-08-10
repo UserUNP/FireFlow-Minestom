@@ -29,7 +29,7 @@ public class StructNode extends Node {
     }
 
     private StructNode(StructValue type) {
-        super(type.getName() + " Struct");
+        super(type.getBaseName() + " Struct");
         this.type = type;
         for (Pair<String, Value> pair : type.types) output(pair.left(), pair.right());
     }
@@ -48,7 +48,7 @@ public class StructNode extends Node {
     public class CreateNode extends Node {
 
         public CreateNode() {
-            super(StructNode.this.type.getName());
+            super(StructNode.this.type.getBaseName());
             output(name, type);
             inputs = StructNode.this.outputs.stream().map(o -> new NodeInput(o.getName(), o.getType())).toList();
         }
