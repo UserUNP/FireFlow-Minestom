@@ -2,6 +2,7 @@ package de.blazemcworld.fireflow.value;
 
 import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Type;
@@ -33,7 +34,7 @@ public interface Value {
         return List.of();
     }
 
-    default List<List<Value>> possibleGenerics() {
+    default List<Pair<String, List<Value>>> possibleGenerics() {
         return List.of();
     }
 

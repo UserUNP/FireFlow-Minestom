@@ -3,7 +3,7 @@ package de.blazemcworld.fireflow.editor;
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
-import de.blazemcworld.fireflow.editor.widget.NodeCategoryWidget;
+import de.blazemcworld.fireflow.editor.widget.CreateWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeInputWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeWidget;
 import de.blazemcworld.fireflow.editor.widget.WireWidget;
@@ -100,7 +100,7 @@ public class CodeEditor {
             }
             Widget selected = getWidget(event.getPlayer(), cursor);
             if (selected == null) {
-                widgets.add(new NodeCategoryWidget(cursor, inst, NodeCategory.ROOT));
+                widgets.add(new CreateWidget(cursor, inst));
                 return;
             }
             selected.swapItem(cursor, event.getPlayer(), this);

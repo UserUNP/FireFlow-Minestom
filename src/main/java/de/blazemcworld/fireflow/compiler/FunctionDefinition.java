@@ -138,17 +138,13 @@ public final class FunctionDefinition {
         fnOutputsNode.inputs.addAll(fnOutputs);
     }
 
-    private FunctionDefinition fnDefinitionThis() {
-        return this;
-    }
-
     public class DefinitionNode extends Node {
         public DefinitionNode(String name) {
             super(name);
         }
 
         public FunctionDefinition getDefinition() {
-            return fnDefinitionThis();
+            return FunctionDefinition.this;
         }
 
         @Override
@@ -190,7 +186,7 @@ public final class FunctionDefinition {
         }
 
         public FunctionDefinition getDefinition() {
-            return fnDefinitionThis();
+            return FunctionDefinition.this;
         }
     }
 

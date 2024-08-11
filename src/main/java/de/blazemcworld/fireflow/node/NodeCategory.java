@@ -1,8 +1,8 @@
 package de.blazemcworld.fireflow.node;
 
-import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
+import de.blazemcworld.fireflow.editor.widget.GenericSelectorWidget;
 import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
 import de.blazemcworld.fireflow.node.impl.event.PlayerJoinEvent;
@@ -10,145 +10,119 @@ import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
 import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
-import de.blazemcworld.fireflow.node.impl.player.*;
+import de.blazemcworld.fireflow.node.impl.player.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.*;
-import de.blazemcworld.fireflow.value.NumberValue;
-import de.blazemcworld.fireflow.value.PlayerValue;
-import de.blazemcworld.fireflow.value.TextValue;
-import de.blazemcworld.fireflow.value.Value;
-import de.blazemcworld.fireflow.node.impl.variable.GetVariableNode;
-import de.blazemcworld.fireflow.node.impl.variable.LocalVariableScope;
-import de.blazemcworld.fireflow.node.impl.variable.SetVariableNode;
 import de.blazemcworld.fireflow.value.*;
 import it.unimi.dsi.fastutil.Pair;
+import net.minestom.server.coordinate.Vec;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Consumer;
 
-public class NodeCategory {
+public record NodeCategory(String name, NodesSupplier supplier) {
 
-    public static final NodeCategory ROOT = new NodeCategory("Root", List.of(
-            AddNumbersNode::new,
-            PlayerJoinEvent::new,
-            SendMessageNode::new,
-            WhileNode::new
+    private static Entry setVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
+        return Entry.of("Set " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, (type) -> {
+            cb.accept(new SetVariableNode(scope, type));
+        }));
+    }
+
+    private static Entry getVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
+        return Entry.of("Get " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, (type) -> {
+            cb.accept(new GetVariableNode(scope, type));
+        }));
+    }
+
+    public final static NodeCategory EVENTS = new NodeCategory("Events", (e, o) -> List.of(
+            Entry.of("On Player Join", cb -> cb.accept(new PlayerJoinEvent()))
     ));
 
-    public static final NodeCategory VARIABLES = new NodeCategory("Variables", ROOT, List.of(
-            () -> new GetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new GetVariableNode(PersistentVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new GetVariableNode(SpaceVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new SetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new SetVariableNode(PersistentVariableScope.INSTANCE, NumberValue.INSTANCE),
-            () -> new SetVariableNode(SpaceVariableScope.INSTANCE, NumberValue.INSTANCE)
+    public final static NodeCategory NUMBERS = new NodeCategory("Numbers", (e, o) -> List.of(
+            Entry.of("Addition", cb -> cb.accept(new AddNumbersNode()))
     ));
 
-    public static final NodeCategory PLAYERS = new NodeCategory("Players", ROOT, List.of(
-            ClearTitleNode::new,
-            KillPlayerNode::new,
-            SendActionBarNode::new,
-            SendTitleNode::new,
-            SetAllowPlayerFlyingNode::new,
-            SetExperienceNode::new,
-            SetLevelNode::new,
-            SetPlayerFlyingNode::new,
-            SetPlayerFoodNode::new,
-            SetPlayerHealthNode::new,
-            SetPlayerSaturationNode::new
+    public final static NodeCategory FLOW = new NodeCategory("Flow", (e, o) -> List.of(
+            Entry.of("While Loop", cb -> cb.accept(new WhileNode()))
     ));
 
-    public static final Map<Value, NodeCategory> EXTRACTIONS = new HashMap<>();
-
-    public static final NodeCategory PLAYER_EXTRACTIONS = new NodeCategory("Player Extractions", PlayerValue.INSTANCE, List.of(
-            PlayerUUIDNode::new
+    public final static NodeCategory PLAYERS = new NodeCategory("Players", (e, o) -> List.of(
+            Entry.of("Send Message", cb -> cb.accept(new SendMessageNode()))
     ));
 
-    public static final NodeCategory TEXT_EXTRACTIONS = new NodeCategory("Text Extractions", TextValue.INSTANCE, List.of(
-            TextToMessageNode::new
+    public final static NodeCategory FUNCTIONS = new NodeCategory("Functions", (e, o) -> {
+        List<Entry> list = new ArrayList<>(e.functions.size());
+        for (FunctionDefinition def : e.functions) list.add(Entry.of(def.fnName, cb -> cb.accept(def.createCall())));
+        return list;
+    });
+
+    public final static NodeCategory VARIABLES = new NodeCategory("Variables", (e, o) -> List.of(
+            setVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
+            getVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
+            setVarNodeEntry(SpaceVariableScope.INSTANCE, e, o),
+            getVarNodeEntry(SpaceVariableScope.INSTANCE, e, o),
+            setVarNodeEntry(PersistentVariableScope.INSTANCE, e, o),
+            getVarNodeEntry(PersistentVariableScope.INSTANCE, e, o)
     ));
 
-    public static @Nullable NodeCategory get(Value type) {
+    public final static NodeCategory[] CATEGORIES = new NodeCategory[]{
+            EVENTS,
+            FUNCTIONS,
+            VARIABLES,
+            FLOW,
+            NUMBERS,
+            PLAYERS,
+    };
+
+    private final static HashMap<Value, NodeCategory> extractions = new HashMap<>();
+
+    private static void putExtractions(Value type, NodesSupplier supplier) {
+        extractions.putIfAbsent(type, new NodeCategory(type.getFullName() + " Extractions", supplier));
+    }
+
+    public static @Nullable NodeCategory getExtractions(Value type) {
         if (type instanceof ListValue) return getListExtractions((ListValue) type);
         else if (type instanceof StructValue) return getStructExtractions((StructValue) type);
-        else return EXTRACTIONS.get(type);
+        else return extractions.get(type);
     }
 
     private static NodeCategory getListExtractions(ListValue type) {
-        return new NodeCategory(type.getFullName() + " Extractions", type, List.of(
-                () -> new ListSizeNode(type)
+        String name = type.getFullName();
+        return new NodeCategory(type.getFullName() + " Extractions", (e, o) -> List.of(
+                Entry.of(name + " Size", cb -> cb.accept(new ListSizeNode(type)))
         ));
     }
 
     private static NodeCategory getStructExtractions(StructValue type) {
-        ArrayList<Supplier<Node>> list = new ArrayList<>(type.size());
-        for (int i = 0; i < type.size(); i++) {
-            Pair<String, Value> pair = type.getField(i);
-            final int finalI = i;
-            list.add(() -> new StructFieldNode(type, finalI, pair));
-        }
-        return new NodeCategory(type.getBaseName() + " Extractions", type, list);
-    }
-
-    public final String name;
-    public final @Nullable NodeCategory parent;
-    public final boolean isFunctions;
-    public final @Nullable Value extractionType;
-    public final List<Pair<String, Supplier<Node>>> nodes = new ArrayList<>();
-    public final List<NodeCategory> subcategories = new ArrayList<>();
-    public NodeCategory(String name, @Nullable NodeCategory parent, boolean isFunctions, @Nullable Value extractionType, List<Supplier<Node>> nodes) {
-        this.name = name;
-        this.parent = parent;
-        this.isFunctions = isFunctions;
-        this.extractionType = extractionType;
-
-        for (Supplier<Node> s : nodes) {
-            Node node = s.get();
-            if (extractionType != null) {
-                if (node instanceof ExtractionNode e) {
-                    if (e.input.type != extractionType) {
-                        FireFlow.LOGGER.warn("Node {} is not an extraction node of type {}, but present in category {}!", node.getBaseName(), extractionType, name);
-                    }
-                } else {
-                    FireFlow.LOGGER.warn("Node {} is not an extraction node, but present in category {}!", node.getBaseName(), name);
-                }
+        return new NodeCategory(type.getBaseName() + " Extractions", (e, o) -> {
+            ArrayList<Entry> list = new ArrayList<>(type.size());
+            for (int i = 0; i < type.size(); i++) {
+                final int finalI = i;
+                Pair<String, Value> pair = type.getField(finalI);
+                list.add(Entry.of(pair.left(), cb -> cb.accept(new StructFieldNode(type, finalI, pair))));
             }
-            this.nodes.add(Pair.of(node.getBaseName(), s));
+            return list;
+        });
+    }
+
+    static {
+        putExtractions(PlayerValue.INSTANCE, (e, o) -> List.of(
+                Entry.of("Get UUID", cb -> cb.accept(new PlayerUUIDNode()))
+        ));
+        putExtractions(TextValue.INSTANCE, (e, o) -> List.of(
+                Entry.of("To Message", cb -> cb.accept(new TextToMessageNode()))
+        ));
+    }
+
+    public interface NodesSupplier {
+        List<Entry> get(CodeEditor e, Vec o);
+    }
+
+    public record Entry(String name, Consumer<Consumer<Node>> callback) {
+        public static Entry of(String name, Consumer<Consumer<Node>> callback) {
+            return new Entry(name, callback);
         }
-        this.nodes.sort(Comparator.comparing(Pair::left));
-
-        if (parent != null && !isFunctions) {
-            parent.subcategories.add(this);
-            parent.subcategories.sort(Comparator.comparing(c -> c.name));
-        }
-        if (extractionType != null) {
-            EXTRACTIONS.put(extractionType, this);
-        }
-    }
-
-    public NodeCategory(String name, NodeCategory parent, List<Supplier<Node>> nodes) {
-        this(name, parent, false, null, nodes);
-    }
-
-    public NodeCategory(String name, Value extractionType, List<Supplier<Node>> nodes) {
-        this(name, null, false, extractionType, nodes);
-    }
-
-    public NodeCategory(String name, List<Supplier<Node>> nodes) {
-        this(name, null, false, null, nodes);
-    }
-
-    public NodeCategory(String name, NodeCategory parent, boolean isFunctions, List<Supplier<Node>> nodes) {
-        this(name, parent, isFunctions, null, nodes);
-    }
-
-    public static NodeCategory forFunctions(CodeEditor editor) {
-        List<Supplier<Node>> nodes = new ArrayList<>();
-
-        for (FunctionDefinition definition : editor.functions) {
-            nodes.add(definition::createCall);
-        }
-
-        return new NodeCategory("Functions", ROOT, true, nodes);
     }
 }

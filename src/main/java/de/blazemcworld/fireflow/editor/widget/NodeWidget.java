@@ -13,6 +13,7 @@ import de.blazemcworld.fireflow.node.NodeOutput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.util.TextWidth;
 import de.blazemcworld.fireflow.value.AllValues;
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Vec;
@@ -158,7 +159,9 @@ public class NodeWidget implements Widget {
             }
 
             boolean isInputs = defNode.getDefinition().fnInputsNode == node;
-            GenericSelectorWidget.choose(cursor.add(isInputs ? 2 : -2, 0, 0), editor, List.of(AllValues.any), chosen -> {
+            GenericSelectorWidget.choose(cursor.add(isInputs ? 2 : -2, 0, 0), editor, List.of(
+                    Pair.of(isInputs ? "input type" : "output type", AllValues.any)
+            ),chosen -> {
                 if (editor.inUse(prev)) return;
                 List<NodeOutput> inputs = new ArrayList<>(prev.fnInputs);
                 List<NodeInput> outputs = new ArrayList<>(prev.fnOutputs);
