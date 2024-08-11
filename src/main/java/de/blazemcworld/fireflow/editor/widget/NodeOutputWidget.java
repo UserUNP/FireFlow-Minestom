@@ -9,7 +9,7 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerChatEvent;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.Instance;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +22,7 @@ public class NodeOutputWidget extends ButtonWidget {
     public final NodeWidget parent;
     public Set<NodeInputWidget> connected = new HashSet<>();
 
-    public NodeOutputWidget(Vec position, InstanceContainer inst, Component text, NodeOutput output, NodeWidget parent) {
+    public NodeOutputWidget(Vec position, Instance inst, Component text, NodeOutput output, NodeWidget parent) {
         super(position, inst, text);
         this.output = output;
         this.parent = parent;

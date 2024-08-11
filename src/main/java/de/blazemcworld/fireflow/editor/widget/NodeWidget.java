@@ -18,7 +18,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerChatEvent;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.Instance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,14 +27,14 @@ public class NodeWidget implements Widget {
 
     public final List<NodeInputWidget> inputs = new ArrayList<>();
     public final List<NodeOutputWidget> outputs = new ArrayList<>();
-    private final InstanceContainer inst;
+    private final Instance inst;
     public final Node node;
     private TextWidget title;
     public RectWidget border;
     private Bounds bounds;
     public Vec origin;
 
-    public NodeWidget(Vec origin, InstanceContainer inst, Node node) {
+    public NodeWidget(Vec origin, Instance inst, Node node) {
         this.origin = origin;
         this.inst = inst;
         this.node = node;

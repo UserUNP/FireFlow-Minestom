@@ -11,7 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerChatEvent;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.Instance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ public class NodeInputWidget extends ButtonWidget {
     public final NodeWidget parent;
     public List<WireWidget> wires = new ArrayList<>();
 
-    public NodeInputWidget(Vec position, InstanceContainer inst, Component text, NodeInput input, NodeWidget parent) {
+    public NodeInputWidget(Vec position, Instance inst, Component text, NodeInput input, NodeWidget parent) {
         super(position, inst, text);
         this.input = input;
         this.parent = parent;

@@ -24,7 +24,7 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.event.entity.EntityAttackEvent;
 import net.minestom.server.event.player.*;
 import net.minestom.server.event.trait.InstanceEvent;
-import net.minestom.server.instance.InstanceContainer;
+import net.minestom.server.instance.Instance;
 import net.minestom.server.network.NetworkBuffer;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 
 public class CodeEditor {
 
-    public final InstanceContainer inst;
+    public final Instance inst;
     public final List<Widget> widgets = new ArrayList<>();
     private final HashMap<Player, EditorAction> actions = new HashMap<>();
     private final Path filePath;
