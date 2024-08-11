@@ -45,7 +45,7 @@ public abstract class Node {
         List<Value> generics = generics();
         buffer.write(NetworkBuffer.INT, generics.size());
         for (Value generic : generics) {
-            writeValue(buffer, generic);
+            AllValues.writeValue(buffer, generic);
         }
 
         List<NodeInput> insetted = new ArrayList<>();
@@ -59,20 +59,11 @@ public abstract class Node {
         }
     }
 
-    private void writeValue(NetworkBuffer buffer, Value value) {
-        buffer.write(NetworkBuffer.STRING, value.getBaseName());
-        List<Value> generics = value.toGenerics();
-        buffer.write(NetworkBuffer.INT, generics.size());
-        for (Value generic : generics) {
-            writeValue(buffer, generic);
-        }
-    }
-
     public Node readData(NetworkBuffer buffer) {
         int genericsSize = buffer.read(NetworkBuffer.INT);
         List<Value> generics = new ArrayList<>();
         for (int i = 0; i < genericsSize; i++) {
-            generics.add(readValue(buffer));
+            generics.add(AllValues.readValue(buffer));
         }
 
         Node target = fromGenerics(generics);
@@ -84,18 +75,6 @@ public abstract class Node {
         }
 
         return target;
-    }
-
-    private Value readValue(NetworkBuffer buffer) {
-        String name = buffer.read(NetworkBuffer.STRING);
-        List<Value> generics = new ArrayList<>();
-        int genericsSize = buffer.read(NetworkBuffer.INT);
-        for (int i = 0; i < genericsSize; i++) {
-            generics.add(readValue(buffer));
-        }
-        Value norm = AllValues.get(name);
-        if (norm == null) return null;
-        return norm.fromGenerics(generics);
     }
 
     public List<Value> generics() {

@@ -30,7 +30,8 @@ public class SendMessageNode extends Node {
                                 Opcodes.INVOKEINTERFACE,
                                 "net/kyori/adventure/audience/Audience",
                                 "sendMessage",
-                                "(Lnet/kyori/adventure/text/Component;)V"
+                                "(Lnet/kyori/adventure/text/Component;)V",
+                                true
                         ))
                 ), null),
                 next

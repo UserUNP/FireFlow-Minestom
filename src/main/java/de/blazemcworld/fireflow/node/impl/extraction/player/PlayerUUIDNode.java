@@ -16,7 +16,10 @@ public class PlayerUUIDNode extends ExtractionNode {
 
         output.setInstruction(new MultiInstruction(
                 Type.getType(String.class),
-                new InstanceMethodInstruction(PlayerValue.Reference.class, input, "uuid", Type.getType(UUID.class), List.of())
+                new InstanceMethodInstruction(UUID.class,
+                        new InstanceMethodInstruction(PlayerValue.Reference.class, input, "uuid", Type.getType(UUID.class), List.of()),
+                        "toString", Type.getType(String.class), List.of()
+                )
         ));
     }
 }

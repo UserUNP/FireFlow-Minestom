@@ -1,5 +1,6 @@
 package de.blazemcworld.fireflow.editor.widget;
 
+import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
@@ -9,11 +10,14 @@ import de.blazemcworld.fireflow.node.ExtractionNode;
 import de.blazemcworld.fireflow.node.Node;
 import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.util.TextWidth;
+import de.blazemcworld.fireflow.value.AllValues;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.player.PlayerChatEvent;
 import net.minestom.server.instance.InstanceContainer;
 
 import java.util.ArrayList;
@@ -90,7 +94,7 @@ public class NodeWidget implements Widget {
             if (init) {
                 NodeInputWidget btn = new NodeInputWidget(pos, inst, Component.text("○ " + input.getName()).color(input.type.getColor()), input, this);
                 inputs.add(btn);
-                btn.leftClick = (player, editor) -> editor.remove(this);
+                btn.leftClick = (player, editor) -> tryRemove(editor);
                 btn.rightClick = (player, editor) -> editor.setAction(player, new CreateWireAction(input, btn, player, editor));
             } else {
                 inputs.get(index).position = pos;
@@ -106,7 +110,7 @@ public class NodeWidget implements Widget {
             if (init) {
                 NodeOutputWidget btn = new NodeOutputWidget(pos.add(TextWidth.calculate(output.getName() + " ○", false) / 40, 0, 0), inst, Component.text(output.getName() + " ○").color(output.type.getColor()), output, this);
                 outputs.add(btn);
-                btn.leftClick = (player, editor) -> editor.remove(this);
+                btn.leftClick = (player, editor) -> tryRemove(editor);
                 btn.rightClick = (player, editor) -> editor.setAction(player, new CreateWireAction(output, btn, player, editor));
             } else {
                 outputs.get(index).position = pos.add(TextWidth.calculate(output.getName() + " ○", false) / 40, 0, 0);
@@ -131,7 +135,55 @@ public class NodeWidget implements Widget {
     }
 
     @Override
+    public void chat(Vec cursor, PlayerChatEvent event, CodeEditor editor) {
+        if (node instanceof FunctionDefinition.DefinitionNode defNode) {
+            event.setCancelled(true);
+            FunctionDefinition prev = defNode.getDefinition();
+            if (editor.inUse(prev)) {
+                event.getPlayer().sendMessage(Messages.error("Can't rename used functions!"));
+                return;
+            }
+            FunctionDefinition next = new FunctionDefinition(event.getMessage(), prev.fnInputs, prev.fnOutputs);
+            editor.redefine(prev, next);
+        }
+    }
+
+    @Override
+    public void swapItem(Vec cursor, Player player, CodeEditor editor) {
+        if (node instanceof FunctionDefinition.DefinitionNode defNode) {
+            FunctionDefinition prev = defNode.getDefinition();
+            if (editor.inUse(prev)) {
+                player.sendMessage(Messages.error("Can't modify used functions!"));
+                return;
+            }
+
+            boolean isInputs = defNode.getDefinition().fnInputsNode == node;
+            GenericSelectorWidget.choose(cursor.add(isInputs ? 2 : -2, 0, 0), editor, List.of(AllValues.any), chosen -> {
+                if (editor.inUse(prev)) return;
+                List<NodeOutput> inputs = new ArrayList<>(prev.fnInputs);
+                List<NodeInput> outputs = new ArrayList<>(prev.fnOutputs);
+                if (isInputs) {
+                    inputs.add(new NodeOutput("Unnamed", chosen.getFirst()));
+                } else {
+                    outputs.add(new NodeInput("Unnamed", chosen.getFirst()));
+                }
+                FunctionDefinition next = new FunctionDefinition(prev.fnName, inputs, outputs);
+                editor.redefine(prev, next);
+            });
+        }
+    }
+
+    @Override
     public void leftClick(Vec cursor, Player player, CodeEditor editor) {
+        tryRemove(editor);
+    }
+
+    private void tryRemove(CodeEditor editor) {
+        if (node instanceof FunctionDefinition.DefinitionNode def) {
+            if (editor.inUse(def.getDefinition())) return;
+            editor.remove(def.getDefinition());
+            return;
+        }
         editor.remove(this);
     }
 

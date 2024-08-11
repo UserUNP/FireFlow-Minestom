@@ -106,7 +106,7 @@ public class PlayerValue implements Value {
 
     public record Reference(Space space, UUID uuid) {
         @SuppressWarnings("unused") // Used by asm
-        static Reference UNKNOWN = new Reference(null, (UUID) null);
+        public static Reference UNKNOWN = new Reference(null, UUID.fromString("00000000-0000-0000-0000-000000000000"));
 
         public Reference(Space space, Player player) {
             this(space, player.getUuid());

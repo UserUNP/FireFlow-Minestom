@@ -1,5 +1,6 @@
 package de.blazemcworld.fireflow.editor.widget;
 
+import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
@@ -27,7 +28,7 @@ public class NodeCategoryWidget implements Widget {
 
     public NodeCategoryWidget(Vec pos, InstanceContainer inst, NodeCategory category) {
         Vec originPos = pos;
-        double width = 0;
+        double width = 80;
         for (NodeCategory subcategory : category.subcategories) {
             width = Math.max(width, TextWidth.calculate(subcategory.name, false));
         }
@@ -38,6 +39,8 @@ public class NodeCategoryWidget implements Widget {
 
         double height = (category.subcategories.size() + category.nodes.size()) * 0.3;
         if (category.parent != null) height += 0.3;
+        if (category == NodeCategory.ROOT) height += 0.3;
+        if (category.isFunctions) height += 0.3;
 
         bounds = new Bounds(
             Vec.fromPoint(pos).add(-width * 0.5 - 0.1, 0.5 * height + 0.15, 0),
@@ -84,6 +87,44 @@ public class NodeCategoryWidget implements Widget {
                         if (selectCallback != null) selectCallback.accept(widget);
                     });
                 }
+            };
+            btn.leftClick = (player, editor) -> editor.remove(this);
+            buttons.add(btn);
+            pos = Vec.fromPoint(pos).add(0, -0.3, 0);
+        }
+
+        if (category == NodeCategory.ROOT) {
+            ButtonWidget btn = new ButtonWidget(pos, inst, Component.text("Functions").color(NamedTextColor.LIGHT_PURPLE));
+            btn.rightClick = (player, editor) -> {
+                editor.remove(this);
+                editor.widgets.add(new NodeCategoryWidget(originPos, inst, NodeCategory.forFunctions(editor)));
+            };
+            btn.leftClick = (player, editor) -> editor.remove(this);
+            buttons.add(btn);
+            pos = Vec.fromPoint(pos).add(0, -0.3, 0);
+        }
+
+        if (category.isFunctions) {
+            ButtonWidget btn = new ButtonWidget(pos, inst, Component.text("Create Function").color(NamedTextColor.LIGHT_PURPLE));
+            btn.rightClick = (player, editor) -> {
+                editor.remove(this);
+
+                int id = 0;
+                String name = "Unnamed";
+                search:
+                while (true) {
+                    for (FunctionDefinition definition : editor.functions) {
+                        if (definition.fnName.equals(name)) {
+                            name = "Unnamed " + (++id);
+                            continue search;
+                        }
+                    }
+                    break;
+                }
+                FunctionDefinition created = new FunctionDefinition(name, List.of(), List.of());
+                editor.functions.add(created);
+                editor.widgets.add(new NodeWidget(originPos.add(2, 0, 0), inst, created.fnInputsNode));
+                editor.widgets.add(new NodeWidget(originPos.add(-2, 0, 0), inst, created.fnOutputsNode));
             };
             btn.leftClick = (player, editor) -> editor.remove(this);
             buttons.add(btn);

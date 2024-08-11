@@ -53,7 +53,11 @@ public abstract class CompiledNode {
 
     @SuppressWarnings("unused") // Used by asm
     public Object getInternalVar(String key) {
-        return internalVars.peek().get(key);
+        for (int i = internalVars.size() - 1; i >= 0; i--) {
+            Object v = internalVars.get(i).get(key);
+            if (v != null) return v;
+        }
+        return null;
     }
 
     public void setInternalVar(String key, Object value) {

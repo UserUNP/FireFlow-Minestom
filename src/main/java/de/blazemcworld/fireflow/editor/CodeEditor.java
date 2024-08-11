@@ -1,18 +1,19 @@
 package de.blazemcworld.fireflow.editor;
 
 import de.blazemcworld.fireflow.FireFlow;
+import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
 import de.blazemcworld.fireflow.editor.widget.NodeCategoryWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeInputWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeWidget;
 import de.blazemcworld.fireflow.editor.widget.WireWidget;
 import de.blazemcworld.fireflow.editor.action.DeleteSelectionAction;
-import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeCategory;
-import de.blazemcworld.fireflow.node.NodeList;
+import de.blazemcworld.fireflow.node.*;
 import de.blazemcworld.fireflow.space.Space;
 import de.blazemcworld.fireflow.util.PlayerExitInstanceEvent;
+import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.SignalValue;
+import de.blazemcworld.fireflow.value.Value;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -42,6 +43,7 @@ public class CodeEditor {
     public final List<Widget> widgets = new ArrayList<>();
     private final HashMap<Player, EditorAction> actions = new HashMap<>();
     private final Path filePath;
+    public final List<FunctionDefinition> functions = new ArrayList<>();
 
     public CodeEditor(Space space) {
         filePath = Path.of("spaces").resolve(String.valueOf(space.info.id)).resolve("code.bin");
@@ -90,6 +92,7 @@ public class CodeEditor {
         });
 
         events.addListener(PlayerSwapItemEvent.class, event -> {
+            event.setCancelled(true);
             Vec cursor = getCursor(event.getPlayer());
             if (actions.containsKey(event.getPlayer())) {
                 actions.get(event.getPlayer()).swapItem(cursor);
@@ -176,7 +179,24 @@ public class CodeEditor {
 
     public void save() {
         NetworkBuffer buffer = new NetworkBuffer();
-        buffer.write(NetworkBuffer.INT, 0); // version
+        buffer.write(NetworkBuffer.INT, 1); // version
+
+        buffer.write(NetworkBuffer.INT, functions.size());
+        for (FunctionDefinition fn : functions) {
+            buffer.write(NetworkBuffer.STRING, fn.fnName);
+
+            buffer.write(NetworkBuffer.INT, fn.fnInputs.size());
+            for (NodeOutput input : fn.fnInputs) {
+                buffer.write(NetworkBuffer.STRING, input.getName());
+                AllValues.writeValue(buffer, input.type);
+            }
+
+            buffer.write(NetworkBuffer.INT, fn.fnOutputs.size());
+            for (NodeInput output : fn.fnOutputs) {
+                buffer.write(NetworkBuffer.STRING, output.getName());
+                AllValues.writeValue(buffer, output.type);
+            }
+        }
 
         List<NodeWidget> nodes = new ArrayList<>();
         for (Widget w : widgets) {
@@ -186,6 +206,10 @@ public class CodeEditor {
         buffer.write(NetworkBuffer.INT, nodes.size());
         for (NodeWidget n : nodes) {
             buffer.write(NetworkBuffer.STRING, n.node.getBaseName());
+            byte type = 0;
+            if (n.node instanceof FunctionDefinition.Call) type = 1;
+            if (n.node instanceof FunctionDefinition.DefinitionNode d) type = (byte) (d.getDefinition().fnInputsNode == d ? 2 : 3);
+            buffer.write(NetworkBuffer.BYTE, type);
             n.node.writeData(buffer);
             buffer.write(NetworkBuffer.DOUBLE, n.origin.x());
             buffer.write(NetworkBuffer.DOUBLE, n.origin.y());
@@ -231,15 +255,60 @@ public class CodeEditor {
 
         int version = buffer.read(NetworkBuffer.INT);
 
+        if (version >= 1) {
+            functions.clear();
+            int fnCount = buffer.read(NetworkBuffer.INT);
+            for (int fnId = 0; fnId < fnCount; fnId++) {
+                String name = buffer.read(NetworkBuffer.STRING);
+
+                List<NodeOutput> inputs = new ArrayList<>();
+                int count = buffer.read(NetworkBuffer.INT);
+                for (int each = 0; each < count; each++) {
+                    String ioName = buffer.read(NetworkBuffer.STRING);
+                    Value type = AllValues.readValue(buffer);
+                    inputs.add(new NodeOutput(ioName, type));
+                }
+
+                List<NodeInput> outputs = new ArrayList<>();
+                count = buffer.read(NetworkBuffer.INT);
+                for (int each = 0; each < count; each++) {
+                    String ioName = buffer.read(NetworkBuffer.STRING);
+                    Value type = AllValues.readValue(buffer);
+                    outputs.add(new NodeInput(ioName, type));
+                }
+
+                functions.add(new FunctionDefinition(name, inputs, outputs));
+            }
+        }
+
         List<Runnable> connectNodes = new ArrayList<>();
 
         int nodeCount = buffer.read(NetworkBuffer.INT);
         for (int nodeId = 0; nodeId < nodeCount; nodeId++) {
             String id = buffer.read(NetworkBuffer.STRING);
-            Supplier<Node> supplier = NodeList.nodes.get(id);
+            byte type = 0;
+            if (version >= 1) type = buffer.read(NetworkBuffer.BYTE);
+
+            Supplier<Node> supplier = null;
+            if (type == 0) {
+                supplier = NodeList.nodes.get(id);
+            } else if (type >= 1 && type <= 3) {
+                for (FunctionDefinition fn : functions) {
+                    if (!fn.fnName.equals(id)) continue;
+                    if (type == 1) {
+                        supplier = fn::createCall;
+                    } else if (type == 2) {
+                        supplier = () -> fn.fnInputsNode;
+                    } else {
+                        supplier = () -> fn.fnOutputsNode;
+                    }
+                    break;
+                }
+            }
+
             if (supplier == null) {
                 widgets.add(null);
-                return;
+                continue;
             }
             Node node = supplier.get();
             node = node.readData(buffer);
@@ -304,5 +373,55 @@ public class CodeEditor {
             }
         }
         return list;
+    }
+
+    public void redefine(FunctionDefinition prev, FunctionDefinition next) {
+        if (!functions.contains(prev)) return;
+        functions.remove(prev);
+        functions.add(next);
+        List<Widget> removeMe = new ArrayList<>();
+        List<Widget> addMe = new ArrayList<>();
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n) {
+                if (n.node instanceof FunctionDefinition.DefinitionNode d) {
+                    if (d.getDefinition() != prev) continue;
+                    if (n.node == prev.fnInputsNode) {
+                        addMe.add(new NodeWidget(n.origin, inst, next.fnInputsNode));
+                    }
+                    if (n.node == prev.fnOutputsNode) {
+                        addMe.add(new NodeWidget(n.origin, inst, next.fnOutputsNode));
+                    }
+                    removeMe.add(n);
+                }
+            }
+        }
+        for (Widget w : removeMe) remove(w);
+        widgets.addAll(addMe);
+    }
+
+    public void remove(FunctionDefinition fn) {
+        if (!functions.contains(fn)) return;
+        functions.remove(fn);
+        List<Widget> removeMe = new ArrayList<>();
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n) {
+                if (n.node instanceof FunctionDefinition.DefinitionNode d) {
+                    if (d.getDefinition() != fn) continue;
+                    removeMe.add(n);
+                }
+            }
+        }
+        for (Widget w : removeMe) remove(w);
+    }
+
+    public boolean inUse(FunctionDefinition check) {
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n) {
+                if (n.node instanceof FunctionDefinition.Call c) {
+                    if (c.getDefinition() == check) return true;
+                }
+            }
+        }
+        return false;
     }
 }

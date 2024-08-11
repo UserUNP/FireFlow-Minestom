@@ -1,6 +1,7 @@
 package de.blazemcworld.fireflow.editor.widget;
 
 import com.google.gson.JsonParser;
+import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
 import de.blazemcworld.fireflow.node.NodeInput;
@@ -56,6 +57,20 @@ public class NodeInputWidget extends ButtonWidget {
     @Override
     public void chat(Vec cursor, PlayerChatEvent event, CodeEditor editor) {
         event.setCancelled(true);
+        if (parent.node instanceof FunctionDefinition.DefinitionNode def) {
+            if (editor.inUse(def.getDefinition())) {
+                event.getPlayer().sendMessage(Messages.error("Can't rename outputs of used functions!"));
+                return;
+            }
+            FunctionDefinition prev = def.getDefinition();
+            List<NodeInput> updated = new ArrayList<>(prev.fnOutputs);
+            int id = updated.indexOf(input);
+            if (id == -1) return;
+            updated.set(id, new NodeInput(event.getMessage(), input.type));
+            FunctionDefinition next = new FunctionDefinition(prev.fnName, prev.fnInputs, updated);
+            editor.redefine(prev, next);
+            return;
+        }
         String str;
         try {
             str = JsonParser.parseString(event.getMessage()).getAsString();
@@ -69,6 +84,23 @@ public class NodeInputWidget extends ButtonWidget {
         } else {
             event.getPlayer().sendMessage(Messages.error("Failed to inset input value!"));
         }
+    }
+
+    @Override
+    public void leftClick(Vec cursor, Player player, CodeEditor editor) {
+        if (parent.node instanceof FunctionDefinition.DefinitionNode def) {
+            if (editor.inUse(def.getDefinition())) {
+                player.sendMessage(Messages.error("Can't delete outputs of used functions!"));
+                return;
+            }
+            FunctionDefinition prev = def.getDefinition();
+            List<NodeInput> updated = new ArrayList<>(prev.fnOutputs);
+            updated.remove(input);
+            FunctionDefinition next = new FunctionDefinition(prev.fnName, prev.fnInputs, updated);
+            editor.redefine(prev, next);
+            return;
+        }
+        super.leftClick(cursor, player, editor);
     }
 
     public void disconnect() {
