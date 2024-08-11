@@ -22,12 +22,27 @@ public class StructValue implements Value {
     public static StructValue get(String name, List<Pair<String, Value>> types) {
         return cache.computeIfAbsent(name, _n -> {
             StructValue type = new StructValue(name);
+            if (type.types.size() > Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
             type.types = new ArrayList<>(types);
             return type;
         });
     }
 
-    public ArrayList<Pair<String, Value>> types = new ArrayList<>();
+    private ArrayList<Pair<String, Value>> types = new ArrayList<>();
+
+    public void addField(String name, Value type) {
+        if (type == SignalValue.INSTANCE) throw new RuntimeException("no");
+        if (types.size() >= Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
+        types.add(Pair.of(name, type));
+    }
+
+    public Pair<String, Value> getField(int i) {
+        return types.get(i);
+    }
+
+    public int size() {
+        return types.size();
+    }
 
     private final String name;
     private StructValue(String name) {

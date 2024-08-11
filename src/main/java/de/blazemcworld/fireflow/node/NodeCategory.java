@@ -79,9 +79,9 @@ public class NodeCategory {
     }
 
     private static NodeCategory getStructExtractions(StructValue type) {
-        ArrayList<Supplier<Node>> list = new ArrayList<>(type.types.size());
-        for (int i = 0; i < type.types.size(); i++) {
-            Pair<String, Value> pair = type.types.get(i);
+        ArrayList<Supplier<Node>> list = new ArrayList<>(type.size());
+        for (int i = 0; i < type.size(); i++) {
+            Pair<String, Value> pair = type.getField(i);
             final int finalI = i;
             list.add(() -> new StructFieldNode(type, finalI, pair));
         }

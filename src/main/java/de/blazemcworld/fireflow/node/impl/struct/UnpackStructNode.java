@@ -17,8 +17,8 @@ public class UnpackStructNode extends Node {
     public UnpackStructNode(StructValue type) {
         super("Unpack " + type.getBaseName());
         NodeInput struct = input(type.getBaseName(), type);
-        for (int i = 0; i < type.types.size(); i++) {
-            Pair<String, Value> pair = type.types.get(i);
+        for (int i = 0; i < type.size(); i++) {
+            Pair<String, Value> pair = type.getField(i);
             Value fieldType = pair.right();
             output(pair.left(), fieldType).setInstruction(new MultiInstruction(Type.getType("Ljava/lang/Object;"),
                     struct,
