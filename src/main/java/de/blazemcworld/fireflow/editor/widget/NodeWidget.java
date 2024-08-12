@@ -1,6 +1,7 @@
 package de.blazemcworld.fireflow.editor.widget;
 
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
@@ -13,7 +14,8 @@ import de.blazemcworld.fireflow.node.NodeOutput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.util.TextWidth;
 import de.blazemcworld.fireflow.value.AllValues;
-import it.unimi.dsi.fastutil.Pair;
+import de.blazemcworld.fireflow.value.StructValue;
+import de.blazemcworld.fireflow.value.Value;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Vec;
@@ -140,12 +142,21 @@ public class NodeWidget implements Widget {
         if (node instanceof FunctionDefinition.DefinitionNode defNode) {
             event.setCancelled(true);
             FunctionDefinition prev = defNode.getDefinition();
-            if (editor.inUse(prev)) {
+            if (editor.funcInUse(prev)) {
                 event.getPlayer().sendMessage(Messages.error("Can't rename used functions!"));
                 return;
             }
             FunctionDefinition next = new FunctionDefinition(event.getMessage(), prev.fnInputs, prev.fnOutputs);
-            editor.redefine(prev, next);
+            editor.redefineFunc(prev, next);
+        } else if (node instanceof StructDefinition.InitializationNode initNode) {
+            event.setCancelled(true);
+            StructDefinition prev = initNode.getDefinition();
+            if (editor.structInUse(prev)) {
+                event.getPlayer().sendMessage(Messages.error("Can't rename used structs!"));
+                return;
+            }
+            StructDefinition next = new StructDefinition(new StructValue(event.getMessage(), prev.type.fields));
+            editor.redefineStruct(prev, next);
         }
     }
 
@@ -153,25 +164,42 @@ public class NodeWidget implements Widget {
     public void swapItem(Vec cursor, Player player, CodeEditor editor) {
         if (node instanceof FunctionDefinition.DefinitionNode defNode) {
             FunctionDefinition prev = defNode.getDefinition();
-            if (editor.inUse(prev)) {
+            if (editor.funcInUse(prev)) {
                 player.sendMessage(Messages.error("Can't modify used functions!"));
                 return;
             }
 
-            boolean isInputs = defNode.getDefinition().fnInputsNode == node;
-            GenericSelectorWidget.choose(cursor.add(isInputs ? 2 : -2, 0, 0), editor, List.of(
-                    Pair.of(isInputs ? "input type" : "output type", AllValues.any)
-            ),chosen -> {
-                if (editor.inUse(prev)) return;
+            GenericSelectorWidget.choose(cursor.add(defNode.isInputs ? 2 : -2, 0, 0), editor, List.of(
+                    new Value.GenericParam(defNode.isInputs ? "Input Type" : "Output Type", AllValues.any)
+            ), chosen -> {
+                if (editor.funcInUse(prev)) return;
                 List<NodeOutput> inputs = new ArrayList<>(prev.fnInputs);
                 List<NodeInput> outputs = new ArrayList<>(prev.fnOutputs);
-                if (isInputs) {
+                if (defNode.isInputs) {
                     inputs.add(new NodeOutput("Unnamed", chosen.getFirst()));
                 } else {
                     outputs.add(new NodeInput("Unnamed", chosen.getFirst()));
                 }
                 FunctionDefinition next = new FunctionDefinition(prev.fnName, inputs, outputs);
-                editor.redefine(prev, next);
+                editor.redefineFunc(prev, next);
+            });
+        } else if (node instanceof StructDefinition.InitializationNode initNode) {
+            StructDefinition prev = initNode.getDefinition();
+            if (editor.structInUse(prev)) {
+                player.sendMessage(Messages.error("Can't modify used structs!"));
+                return;
+            }
+            GenericSelectorWidget.choose(cursor.add(2, 0, 0), editor, List.of(
+                    new Value.GenericParam("Field Type", AllValues.dataOnly)
+            ), chosen -> {
+                if (editor.structInUse(prev)) return;
+                Value type = chosen.getFirst();
+
+                ArrayList<StructValue.Field> updatedFields = new ArrayList<>(prev.type.fields.size() + 1);
+                updatedFields.addAll(prev.type.fields);
+                updatedFields.add(new StructValue.Field("Unnamed"+updatedFields.size(), type));
+                StructDefinition next = new StructDefinition(new StructValue(prev.stName, updatedFields));
+                editor.redefineStruct(prev, next);
             });
         }
     }
@@ -183,7 +211,7 @@ public class NodeWidget implements Widget {
 
     private void tryRemove(CodeEditor editor) {
         if (node instanceof FunctionDefinition.DefinitionNode def) {
-            if (editor.inUse(def.getDefinition())) return;
+            if (editor.funcInUse(def.getDefinition())) return;
             editor.remove(def.getDefinition());
             return;
         }

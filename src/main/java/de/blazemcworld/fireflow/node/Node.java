@@ -81,7 +81,7 @@ public abstract class Node {
         return List.of();
     }
 
-    public List<List<Value>> possibleGenerics() {
+    public List<Value.GenericParam> possibleGenerics() {
         return List.of();
     }
 

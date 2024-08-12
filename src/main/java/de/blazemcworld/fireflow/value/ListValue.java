@@ -102,7 +102,7 @@ public class ListValue implements Value {
         return List.of(type);
     }
 
-    public List<Pair<String, List<Value>>> possibleGenerics() {
-        return List.of(Pair.of("List Type", AllValues.dataOnly));
+    public List<GenericParam> possibleGenerics() {
+        return List.of(new GenericParam("List Type", AllValues.dataOnly));
     }
 }

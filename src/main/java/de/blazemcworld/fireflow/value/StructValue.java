@@ -4,7 +4,6 @@ import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
-import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.network.NetworkBuffer;
@@ -13,40 +12,15 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.WeakHashMap;
 
 public class StructValue implements Value {
 
-    private static final WeakHashMap<String, StructValue> cache = new WeakHashMap<>();
-    public static StructValue get(String name, List<Pair<String, Value>> types) {
-        return cache.computeIfAbsent(name, _n -> {
-            StructValue type = new StructValue(name);
-            if (type.types.size() > Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
-            type.types = new ArrayList<>(types);
-            return type;
-        });
-    }
-
-    private ArrayList<Pair<String, Value>> types = new ArrayList<>();
-
-    public void addField(String name, Value type) {
-        if (type == SignalValue.INSTANCE) throw new RuntimeException("no");
-        if (types.size() >= Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
-        types.add(Pair.of(name, type));
-    }
-
-    public Pair<String, Value> getField(int i) {
-        return types.get(i);
-    }
-
-    public int size() {
-        return types.size();
-    }
-
+    public final ArrayList<Field> fields;
     private final String name;
-    private StructValue(String name) {
+    public StructValue(String name, ArrayList<Field> fields) {
+        if (fields.size() >= Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
         this.name = name;
+        this.fields = fields;
     }
 
     @Override
@@ -68,7 +42,7 @@ public class StructValue implements Value {
     public InsnList compile(NodeCompiler ctx, Object inset) {
         if (inset != null) throw new IllegalStateException("Struct values can't be inset!");
         InsnList out = new InsnList();
-        out.add(new IntInsnNode(Opcodes.BIPUSH, types.size()));
+        out.add(new IntInsnNode(Opcodes.BIPUSH, fields.size()));
         out.add(new TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/Object"));
         return out;
     }
@@ -84,7 +58,7 @@ public class StructValue implements Value {
                         new TypeInsnNode(Opcodes.INSTANCEOF, "[Ljava/lang/Object;"),
                         new JumpInsnNode(Opcodes.IFGT, cast),
                         new InsnNode(Opcodes.POP),
-                        new IntInsnNode(Opcodes.BIPUSH, types.size()),
+                        new IntInsnNode(Opcodes.BIPUSH, fields.size()),
                         new TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/Object"),
                         new JumpInsnNode(Opcodes.GOTO, end),
                         cast,
@@ -113,4 +87,6 @@ public class StructValue implements Value {
     public Object readInset(NetworkBuffer buffer) {
         throw new IllegalStateException("Struct (" + name + ") values can not be inset!");
     }
+
+    public record Field(String name, Value type) {}
 }

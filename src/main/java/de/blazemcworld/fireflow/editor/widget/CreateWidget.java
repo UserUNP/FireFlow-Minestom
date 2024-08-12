@@ -1,10 +1,13 @@
 package de.blazemcworld.fireflow.editor.widget;
 
+import de.blazemcworld.fireflow.compiler.FunctionDefinition;
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
 import de.blazemcworld.fireflow.node.NodeCategory;
 import de.blazemcworld.fireflow.util.TextWidth;
+import de.blazemcworld.fireflow.value.StructValue;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,10 +16,13 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Instance;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CreateWidget implements Widget {
 
     private final static Component text = Component.text("Create node:", NamedTextColor.YELLOW, TextDecoration.ITALIC);
+    private final static Component newFuncText = Component.text("» New Function", NamedTextColor.GOLD);
+    private final static Component newStructText = Component.text("» New Struct", NamedTextColor.GOLD);
 
     private final ArrayList<ButtonWidget> buttons;
     private final RectWidget border;
@@ -49,6 +55,48 @@ public class CreateWidget implements Widget {
             btn.leftClick = (player, editor) -> editor.remove(this);
             buttons.add(btn);
         }
+
+        ButtonWidget newFuncBtn = new ButtonWidget(pos.add(width / 2, height / 2 - 0.25, 0), inst, newFuncText);
+        newFuncBtn.rightClick = (player, editor) -> {
+            editor.remove(this);
+            String name = "Unnamed";
+            int id = 0;
+            search: while(true) {
+                for (FunctionDefinition f : editor.functions) {
+                    if (f.fnName.equals(name)) {
+                        name = "Unnamed" + (++id);
+                        continue search;
+                    }
+                }
+                break;
+            }
+            FunctionDefinition f = new FunctionDefinition(name, List.of(), List.of());
+            editor.functions.add(f);
+            editor.widgets.add(new NodeWidget(originPos.add(2, 0, 0), inst, f.fnInputsNode));
+            editor.widgets.add(new NodeWidget(originPos.add(-2, 0, 0), inst, f.fnOutputsNode));
+        };
+        newFuncBtn.leftClick = (player, editor) -> editor.remove(this);
+        ButtonWidget newStructBtn = new ButtonWidget(pos.add(width / 2, height / 2 - 0.25, 0), inst, newStructText);
+        newStructBtn.rightClick = (player, editor) -> {
+            editor.remove(this);
+            String name = "Unnamed";
+            int id = 0;
+            search: while(true) {
+                for (StructDefinition s : editor.structs) {
+                    if (s.stName.equals(name)) {
+                        name = "Unnamed" + (++id);
+                        continue search;
+                    }
+                }
+                break;
+            }
+            StructValue type = new StructValue(name, new ArrayList<>());
+            StructDefinition s = new StructDefinition(type);
+            editor.structs.add(s);
+            editor.widgets.add(new NodeWidget(originPos.add(2, 0, 0), inst, s.initNode));
+            //editor.widgets.add(new NodeWidget(originPos.add(-2, 0, 0), inst, s.definition.fnOutputsNode)); //TODO: optional inputs
+        };
+        newStructBtn.leftClick = (player, editor) -> editor.remove(this);
     }
 
     @Override

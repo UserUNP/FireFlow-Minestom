@@ -58,7 +58,7 @@ public class GenericSelectorWidget implements Widget {
         }
     }
 
-    public static void choose(Vec pos, CodeEditor editor, List<Pair<String, List<Value>>> possible, Consumer<List<Value>> callback) {
+    public static void choose(Vec pos, CodeEditor editor, List<Value.GenericParam> possible, Consumer<List<Value>> callback) {
         List<Value> out = new ArrayList<>();
         AtomicReference<Consumer<Value>> next = new AtomicReference<>();
         next.set((chosen) -> {
@@ -67,11 +67,11 @@ public class GenericSelectorWidget implements Widget {
                 callback.accept(out);
                 return;
             }
-            Pair<String, List<Value>> nextPossible = possible.get(out.size());
-            editor.widgets.add(new GenericSelectorWidget(pos, nextPossible.left(), nextPossible.right(), editor, next.get()));
+            Value.GenericParam nextPossible = possible.get(out.size());
+            editor.widgets.add(new GenericSelectorWidget(pos, nextPossible.name(), nextPossible.possibleTypes(), editor, next.get()));
         });
-        Pair<String, List<Value>> p = possible.getFirst();
-        editor.widgets.add(new GenericSelectorWidget(pos, p.left(), p.right(), editor, next.get()));
+        Value.GenericParam p = possible.getFirst();
+        editor.widgets.add(new GenericSelectorWidget(pos, p.name(), p.possibleTypes(), editor, next.get()));
     }
 
     @Override

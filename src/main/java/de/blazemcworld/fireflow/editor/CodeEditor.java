@@ -2,6 +2,7 @@ package de.blazemcworld.fireflow.editor;
 
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
 import de.blazemcworld.fireflow.editor.widget.CreateWidget;
 import de.blazemcworld.fireflow.editor.widget.NodeInputWidget;
@@ -13,6 +14,7 @@ import de.blazemcworld.fireflow.space.Space;
 import de.blazemcworld.fireflow.util.PlayerExitInstanceEvent;
 import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.SignalValue;
+import de.blazemcworld.fireflow.value.StructValue;
 import de.blazemcworld.fireflow.value.Value;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
@@ -44,6 +46,7 @@ public class CodeEditor {
     private final HashMap<Player, EditorAction> actions = new HashMap<>();
     private final Path filePath;
     public final List<FunctionDefinition> functions = new ArrayList<>();
+    public final List<StructDefinition> structs = new ArrayList<>();
 
     public CodeEditor(Space space) {
         filePath = Path.of("spaces").resolve(String.valueOf(space.info.id)).resolve("code.bin");
@@ -195,6 +198,16 @@ public class CodeEditor {
             for (NodeInput output : fn.fnOutputs) {
                 buffer.write(NetworkBuffer.STRING, output.getName());
                 AllValues.writeValue(buffer, output.type);
+            }
+        }
+
+        buffer.write(NetworkBuffer.INT, structs.size());
+        for (StructDefinition st : structs) {
+            buffer.write(NetworkBuffer.STRING, st.stName);
+            buffer.write(NetworkBuffer.INT, st.type.fields.size());
+            for (StructValue.Field field : st.type.fields) {
+                buffer.write(NetworkBuffer.STRING, field.name());
+                AllValues.writeValue(buffer, field.type());
             }
         }
 
@@ -375,28 +388,37 @@ public class CodeEditor {
         return list;
     }
 
-    public void redefine(FunctionDefinition prev, FunctionDefinition next) {
+    public void redefineFunc(FunctionDefinition prev, FunctionDefinition next) {
         if (!functions.contains(prev)) return;
         functions.remove(prev);
         functions.add(next);
-        List<Widget> removeMe = new ArrayList<>();
-        List<Widget> addMe = new ArrayList<>();
         for (Widget w : widgets) {
-            if (w instanceof NodeWidget n) {
-                if (n.node instanceof FunctionDefinition.DefinitionNode d) {
-                    if (d.getDefinition() != prev) continue;
-                    if (n.node == prev.fnInputsNode) {
-                        addMe.add(new NodeWidget(n.origin, inst, next.fnInputsNode));
-                    }
-                    if (n.node == prev.fnOutputsNode) {
-                        addMe.add(new NodeWidget(n.origin, inst, next.fnOutputsNode));
-                    }
-                    removeMe.add(n);
+            if (w instanceof NodeWidget n && n.node instanceof FunctionDefinition.DefinitionNode d) {
+                if (d.getDefinition() != prev) continue;
+                if (n.node == prev.fnInputsNode) {
+                    widgets.add(new NodeWidget(n.origin, inst, next.fnInputsNode));
                 }
+                if (n.node == prev.fnOutputsNode) {
+                    widgets.add(new NodeWidget(n.origin, inst, next.fnOutputsNode));
+                }
+                remove(n);
             }
         }
-        for (Widget w : removeMe) remove(w);
-        widgets.addAll(addMe);
+    }
+
+    public void redefineStruct(StructDefinition prev, StructDefinition next) {
+        if (!structs.contains(prev)) return;
+        structs.remove(prev);
+        structs.add(next);
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n && n.node instanceof StructDefinition.InitializationNode i) {
+                if (i.getDefinition() != prev) continue;
+                if (n.node == prev.initNode) {
+                    widgets.add(new NodeWidget(n.origin, inst, next.initNode));
+                }
+                remove(n);
+            }
+        }
     }
 
     public void remove(FunctionDefinition fn) {
@@ -414,12 +436,19 @@ public class CodeEditor {
         for (Widget w : removeMe) remove(w);
     }
 
-    public boolean inUse(FunctionDefinition check) {
+    public boolean funcInUse(FunctionDefinition check) {
         for (Widget w : widgets) {
-            if (w instanceof NodeWidget n) {
-                if (n.node instanceof FunctionDefinition.Call c) {
-                    if (c.getDefinition() == check) return true;
-                }
+            if (w instanceof NodeWidget n && n.node instanceof FunctionDefinition.Call c) {
+                if (c.getDefinition() == check) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean structInUse(StructDefinition check) {
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n && n.node instanceof StructDefinition.Create c) {
+                if (c.getDefinition() == check) return true;
             }
         }
         return false;

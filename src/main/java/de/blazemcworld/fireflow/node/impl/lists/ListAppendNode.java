@@ -45,8 +45,8 @@ public class ListAppendNode extends Node {
     }
 
     @Override
-    public List<List<Value>> possibleGenerics() {
-        return List.of(AllValues.dataOnly);
+    public List<Value.GenericParam> possibleGenerics() {
+        return List.of(new Value.GenericParam("List Type", AllValues.dataOnly));
     }
 
     @Override

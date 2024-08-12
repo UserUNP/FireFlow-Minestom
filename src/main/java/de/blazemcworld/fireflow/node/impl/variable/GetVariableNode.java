@@ -51,7 +51,7 @@ public class GetVariableNode extends Node {
     }
 
     @Override
-    public List<List<Value>> possibleGenerics() {
-        return List.of(AllValues.dataOnly);
+    public List<Value.GenericParam> possibleGenerics() {
+        return List.of(new Value.GenericParam("Variable Type", AllValues.dataOnly));
     }
 }

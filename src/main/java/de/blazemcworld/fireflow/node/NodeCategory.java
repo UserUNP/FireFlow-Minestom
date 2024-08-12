@@ -1,6 +1,7 @@
 package de.blazemcworld.fireflow.node;
 
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.widget.GenericSelectorWidget;
 import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
@@ -13,7 +14,6 @@ import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
 import de.blazemcworld.fireflow.node.impl.player.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.*;
 import de.blazemcworld.fireflow.value.*;
-import it.unimi.dsi.fastutil.Pair;
 import net.minestom.server.coordinate.Vec;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +58,12 @@ public record NodeCategory(String name, NodesSupplier supplier) {
         return list;
     });
 
+    public final static NodeCategory STRUCTS = new NodeCategory("Structs", (e, o) -> {
+        List<Entry> list = new ArrayList<>(e.structs.size() + 1);
+        for (StructDefinition def : e.structs) list.add(Entry.of(def.stName, cb -> cb.accept(def.createCall())));
+        return list;
+    });
+
     public final static NodeCategory VARIABLES = new NodeCategory("Variables", (e, o) -> List.of(
             setVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
             getVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
@@ -70,6 +76,7 @@ public record NodeCategory(String name, NodesSupplier supplier) {
     public final static NodeCategory[] CATEGORIES = new NodeCategory[]{
             EVENTS,
             FUNCTIONS,
+            STRUCTS,
             VARIABLES,
             FLOW,
             NUMBERS,
@@ -97,11 +104,11 @@ public record NodeCategory(String name, NodesSupplier supplier) {
 
     private static NodeCategory getStructExtractions(StructValue type) {
         return new NodeCategory(type.getBaseName() + " Extractions", (e, o) -> {
-            ArrayList<Entry> list = new ArrayList<>(type.size());
-            for (int i = 0; i < type.size(); i++) {
+            ArrayList<Entry> list = new ArrayList<>(type.fields.size());
+            for (int i = 0; i < type.fields.size(); i++) {
                 final int finalI = i;
-                Pair<String, Value> pair = type.getField(finalI);
-                list.add(Entry.of(pair.left(), cb -> cb.accept(new StructFieldNode(type, finalI, pair))));
+                StructValue.Field field = type.fields.get(finalI);
+                list.add(Entry.of(field.name(), cb -> cb.accept(new StructFieldNode(type, finalI, field))));
             }
             return list;
         });

@@ -58,17 +58,17 @@ public class NodeInputWidget extends ButtonWidget {
     public void chat(Vec cursor, PlayerChatEvent event, CodeEditor editor) {
         event.setCancelled(true);
         if (parent.node instanceof FunctionDefinition.DefinitionNode def) {
-            if (editor.inUse(def.getDefinition())) {
+            FunctionDefinition prev = def.getDefinition();
+            if (editor.funcInUse(prev)) {
                 event.getPlayer().sendMessage(Messages.error("Can't rename outputs of used functions!"));
                 return;
             }
-            FunctionDefinition prev = def.getDefinition();
             List<NodeInput> updated = new ArrayList<>(prev.fnOutputs);
             int id = updated.indexOf(input);
             if (id == -1) return;
             updated.set(id, new NodeInput(event.getMessage(), input.type));
             FunctionDefinition next = new FunctionDefinition(prev.fnName, prev.fnInputs, updated);
-            editor.redefine(prev, next);
+            editor.redefineFunc(prev, next);
             return;
         }
         String str;
@@ -89,7 +89,7 @@ public class NodeInputWidget extends ButtonWidget {
     @Override
     public void leftClick(Vec cursor, Player player, CodeEditor editor) {
         if (parent.node instanceof FunctionDefinition.DefinitionNode def) {
-            if (editor.inUse(def.getDefinition())) {
+            if (editor.funcInUse(def.getDefinition())) {
                 player.sendMessage(Messages.error("Can't delete outputs of used functions!"));
                 return;
             }
@@ -97,7 +97,7 @@ public class NodeInputWidget extends ButtonWidget {
             List<NodeInput> updated = new ArrayList<>(prev.fnOutputs);
             updated.remove(input);
             FunctionDefinition next = new FunctionDefinition(prev.fnName, prev.fnInputs, updated);
-            editor.redefine(prev, next);
+            editor.redefineFunc(prev, next);
             return;
         }
         super.leftClick(cursor, player, editor);

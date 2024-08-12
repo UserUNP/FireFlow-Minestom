@@ -34,7 +34,7 @@ public interface Value {
         return List.of();
     }
 
-    default List<Pair<String, List<Value>>> possibleGenerics() {
+    default List<GenericParam> possibleGenerics() {
         return List.of();
     }
 
@@ -46,4 +46,6 @@ public interface Value {
         }
         return name;
     }
+
+    record GenericParam(String name, List<Value> possibleTypes) {}
 }
