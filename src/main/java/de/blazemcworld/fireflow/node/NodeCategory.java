@@ -11,6 +11,7 @@ import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
 import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
+import de.blazemcworld.fireflow.node.impl.lists.ListAppendNode;
 import de.blazemcworld.fireflow.node.impl.player.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.*;
 import de.blazemcworld.fireflow.value.*;
@@ -21,12 +22,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public record NodeCategory(String name, NodesSupplier supplier) {
 
     private static Entry setVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
-        return Entry.of("Set " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, (type) -> {
+        return Entry.of("Set " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, type -> {
             cb.accept(new SetVariableNode(scope, type));
+        }));
+    }
+
+    private static Entry listNodeEntry(String name, Function<Value, Node> constructor, CodeEditor e, Vec o) {
+        return Entry.of(name, cb -> new GenericSelectorWidget(o, "List Type", AllValues.dataOnly, e, type -> {
+            cb.accept(constructor.apply(type));
         }));
     }
 
@@ -64,6 +72,10 @@ public record NodeCategory(String name, NodesSupplier supplier) {
         return list;
     });
 
+    public final static NodeCategory LISTS = new NodeCategory("Lists", (e, o) -> List.of(
+            listNodeEntry("Append To List", ListAppendNode::new, e, o)
+    ));
+
     public final static NodeCategory VARIABLES = new NodeCategory("Variables", (e, o) -> List.of(
             setVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
             getVarNodeEntry(LocalVariableScope.INSTANCE, e, o),
@@ -77,6 +89,7 @@ public record NodeCategory(String name, NodesSupplier supplier) {
             EVENTS,
             FUNCTIONS,
             STRUCTS,
+            LISTS,
             VARIABLES,
             FLOW,
             NUMBERS,

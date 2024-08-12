@@ -4,7 +4,6 @@ import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
-import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.network.NetworkBuffer;
 import org.objectweb.asm.Opcodes;

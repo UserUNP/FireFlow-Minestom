@@ -56,7 +56,7 @@ public class CreateWidget implements Widget {
             buttons.add(btn);
         }
 
-        ButtonWidget newFuncBtn = new ButtonWidget(pos.add(width / 2, height / 2 - 0.25, 0), inst, newFuncText);
+        ButtonWidget newFuncBtn = new ButtonWidget(pos.add(0, -0.3, 0), inst, newFuncText);
         newFuncBtn.rightClick = (player, editor) -> {
             editor.remove(this);
             String name = "Unnamed";
@@ -76,7 +76,7 @@ public class CreateWidget implements Widget {
             editor.widgets.add(new NodeWidget(originPos.add(-2, 0, 0), inst, f.fnOutputsNode));
         };
         newFuncBtn.leftClick = (player, editor) -> editor.remove(this);
-        ButtonWidget newStructBtn = new ButtonWidget(pos.add(width / 2, height / 2 - 0.25, 0), inst, newStructText);
+        ButtonWidget newStructBtn = new ButtonWidget(pos.add(0, -0.3, 0), inst, newStructText);
         newStructBtn.rightClick = (player, editor) -> {
             editor.remove(this);
             String name = "Unnamed";
@@ -97,6 +97,9 @@ public class CreateWidget implements Widget {
             //editor.widgets.add(new NodeWidget(originPos.add(-2, 0, 0), inst, s.definition.fnOutputsNode)); //TODO: optional inputs
         };
         newStructBtn.leftClick = (player, editor) -> editor.remove(this);
+
+        buttons.add(newFuncBtn);
+        buttons.add(newStructBtn);
     }
 
     @Override
