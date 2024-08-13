@@ -22,26 +22,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public record NodeCategory(String name, NodesSupplier supplier) {
 
-    private static Entry setVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
-        return Entry.of("Set " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, type -> {
-            cb.accept(new SetVariableNode(scope, type));
-        }));
+    private static Entry genericEntry(String name, Supplier<Node> supplier, CodeEditor e, Vec o) {
+        return Entry.of(name, cb -> {
+            Node baseNode = supplier.get();
+            GenericSelectorWidget.choose(o, e, baseNode.possibleGenerics(e.structs), types -> cb.accept(baseNode.fromGenerics(types)));
+        });
     }
 
-    private static Entry listNodeEntry(String name, Function<Value, Node> constructor, CodeEditor e, Vec o) {
-        return Entry.of(name, cb -> new GenericSelectorWidget(o, "List Type", AllValues.dataOnly, e, type -> {
-            cb.accept(constructor.apply(type));
-        }));
+    private static Entry setVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
+        return genericEntry("Set " + scope.getName() + " Variable", () -> new SetVariableNode(scope, NumberValue.INSTANCE), e, o);
     }
 
     private static Entry getVarNodeEntry(VariableScope scope, CodeEditor e, Vec o) {
-        return Entry.of("Get " + scope.getName() + " Variable", cb -> new GenericSelectorWidget(o, "Variable Type", AllValues.dataOnly, e, (type) -> {
-            cb.accept(new GetVariableNode(scope, type));
-        }));
+        return genericEntry("Get " + scope.getName() + " Variable", () -> new GetVariableNode(scope, NumberValue.INSTANCE), e, o);
     }
 
     public final static NodeCategory EVENTS = new NodeCategory("Events", (e, o) -> List.of(
@@ -73,7 +70,7 @@ public record NodeCategory(String name, NodesSupplier supplier) {
     });
 
     public final static NodeCategory LISTS = new NodeCategory("Lists", (e, o) -> List.of(
-            listNodeEntry("Append To List", ListAppendNode::new, e, o)
+            genericEntry("Append", () -> new ListAppendNode(NumberValue.INSTANCE), e, o)
     ));
 
     public final static NodeCategory VARIABLES = new NodeCategory("Variables", (e, o) -> List.of(

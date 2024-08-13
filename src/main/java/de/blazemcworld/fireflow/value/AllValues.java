@@ -1,5 +1,6 @@
 package de.blazemcworld.fireflow.value;
 
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import net.minestom.server.network.NetworkBuffer;
 
 import java.util.ArrayList;
@@ -20,6 +21,20 @@ public class AllValues {
     static {
         any.add(SignalValue.INSTANCE);
         any.addAll(dataOnly);
+    }
+
+    public static List<Value> any(List<StructDefinition> structs) {
+        List<Value> list = new ArrayList<>(structs.size() + any.size());
+        list.addAll(any);
+        for (StructDefinition st : structs) list.add(st.type);
+        return list;
+    }
+
+    public static List<Value> dataOnly(List<StructDefinition> structs) {
+        List<Value> list = new ArrayList<>(structs.size() + dataOnly.size());
+        list.addAll(dataOnly);
+        for (StructDefinition st : structs) list.add(st.type);
+        return list;
     }
 
     public static Value get(String name) {

@@ -1,5 +1,6 @@
 package de.blazemcworld.fireflow.node.impl.lists;
 
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.compiler.instruction.DiscardInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.InstanceMethodInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
@@ -45,8 +46,8 @@ public class ListAppendNode extends Node {
     }
 
     @Override
-    public List<Value.GenericParam> possibleGenerics() {
-        return List.of(new Value.GenericParam("List Type", AllValues.dataOnly));
+    public List<Value.GenericParam> possibleGenerics(List<StructDefinition> structs) {
+        return List.of(new Value.GenericParam("List Type", AllValues.dataOnly(structs)));
     }
 
     @Override

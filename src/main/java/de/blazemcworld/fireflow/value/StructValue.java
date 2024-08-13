@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 public class StructValue implements Value {
 
+    public final static StructValue UNKNOWN = new StructValue("UNKNOWN", new ArrayList<>());
+
     public final ArrayList<Field> fields;
     private final String name;
     public StructValue(String name, ArrayList<Field> fields) {

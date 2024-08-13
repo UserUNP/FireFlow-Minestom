@@ -1,5 +1,6 @@
 package de.blazemcworld.fireflow.node;
 
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.Value;
@@ -81,7 +82,7 @@ public abstract class Node {
         return List.of();
     }
 
-    public List<Value.GenericParam> possibleGenerics() {
+    public List<Value.GenericParam> possibleGenerics(List<StructDefinition> structs) {
         return List.of();
     }
 

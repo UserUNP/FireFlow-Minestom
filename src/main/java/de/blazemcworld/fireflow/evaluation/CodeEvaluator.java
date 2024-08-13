@@ -47,11 +47,18 @@ public class CodeEvaluator {
         for (Runnable r : compile) r.run();
         prepare.clear();
         compile.clear();
-        compiledClass = (Class<CompiledNode>) new ByteClassLoader(CodeEvaluator.class.getClassLoader()).define(compiler.className, compiler.compile());
 
-        events.addListener(InstanceTickEvent.class, event -> {
-            cpuLeft = Config.store.limits().cpuPerTick();
-        });
+        byte[] bytes = compiler.compile();
+        compiledClass = (Class<CompiledNode>) new ByteClassLoader(CodeEvaluator.class.getClassLoader()).define(compiler.className, bytes);
+        /*
+        try (var stream = new java.io.FileOutputStream("generated.class")) {
+            stream.write(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+         */
+
+        events.addListener(InstanceTickEvent.class, event -> cpuLeft = Config.store.limits().cpuPerTick());
     }
 
     public void prepare(Runnable r) {

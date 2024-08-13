@@ -69,9 +69,7 @@ public class CategoryWidget implements Widget {
     @Override
     public void remove() {
         label.remove();
-        for (TextWidget button : buttons) {
-            button.remove();
-        }
+        for (Widget button : buttons) button.remove();
         border.remove();
     }
 }

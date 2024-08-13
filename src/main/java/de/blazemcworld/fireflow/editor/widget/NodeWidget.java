@@ -170,7 +170,7 @@ public class NodeWidget implements Widget {
             }
 
             GenericSelectorWidget.choose(cursor.add(defNode.isInputs ? 2 : -2, 0, 0), editor, List.of(
-                    new Value.GenericParam(defNode.isInputs ? "Input Type" : "Output Type", AllValues.any)
+                    new Value.GenericParam(defNode.isInputs ? "Input Type" : "Output Type", AllValues.any(editor.structs))
             ), chosen -> {
                 if (editor.funcInUse(prev)) return;
                 List<NodeOutput> inputs = new ArrayList<>(prev.fnInputs);
@@ -190,7 +190,7 @@ public class NodeWidget implements Widget {
                 return;
             }
             GenericSelectorWidget.choose(cursor.add(2, 0, 0), editor, List.of(
-                    new Value.GenericParam("Field Type", AllValues.dataOnly)
+                    new Value.GenericParam("Field Type", AllValues.dataOnly(editor.structs))
             ), chosen -> {
                 if (editor.structInUse(prev)) return;
                 Value type = chosen.getFirst();
@@ -211,8 +211,14 @@ public class NodeWidget implements Widget {
 
     private void tryRemove(CodeEditor editor) {
         if (node instanceof FunctionDefinition.DefinitionNode def) {
-            if (editor.funcInUse(def.getDefinition())) return;
-            editor.remove(def.getDefinition());
+            FunctionDefinition prev = def.getDefinition();
+            if (editor.funcInUse(prev)) return;
+            editor.removeFunc(prev);
+            return;
+        } else if (node instanceof StructDefinition.InitializationNode init) {
+            StructDefinition prev = init.getDefinition();
+            if (editor.structInUse(prev)) return;
+            editor.removeStruct(prev);
             return;
         }
         editor.remove(this);

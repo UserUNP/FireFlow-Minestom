@@ -23,8 +23,6 @@ import java.util.Stack;
 
 public class CreateWireAction implements EditorAction {
 
-    private final Component extractText = Component.text("Extraction:", NamedTextColor.YELLOW, TextDecoration.ITALIC);
-
     private NodeInput nodeInput = null;
     private NodeOutput nodeOutput = null;
     private final ButtonWidget origin;
@@ -114,7 +112,7 @@ public class CreateWireAction implements EditorAction {
         NodeCategory category = NodeCategory.getExtractions(nodeOutput.type);
         if (category == null) return;
 
-        CategoryWidget selector = new CategoryWidget(cursor, editor, category, extractText);
+        CategoryWidget selector = new CategoryWidget(cursor, editor, category, Component.text("» " + category.name() + ":", NamedTextColor.YELLOW, TextDecoration.ITALIC));
         editor.widgets.add(selector);
         editor.setAction(player, null);
 

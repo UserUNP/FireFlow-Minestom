@@ -392,48 +392,69 @@ public class CodeEditor {
         if (!functions.contains(prev)) return;
         functions.remove(prev);
         functions.add(next);
+        ArrayList<Widget> addMe = new ArrayList<>();
+        ArrayList<Widget> removeMe = new ArrayList<>();
         for (Widget w : widgets) {
             if (w instanceof NodeWidget n && n.node instanceof FunctionDefinition.DefinitionNode d) {
                 if (d.getDefinition() != prev) continue;
                 if (n.node == prev.fnInputsNode) {
-                    widgets.add(new NodeWidget(n.origin, inst, next.fnInputsNode));
+                    addMe.add(new NodeWidget(n.origin, inst, next.fnInputsNode));
                 }
                 if (n.node == prev.fnOutputsNode) {
-                    widgets.add(new NodeWidget(n.origin, inst, next.fnOutputsNode));
+                    addMe.add(new NodeWidget(n.origin, inst, next.fnOutputsNode));
                 }
-                remove(n);
+                removeMe.add(w);
             }
         }
+        for (Widget w : removeMe) remove(w);
+        widgets.addAll(addMe);
     }
 
     public void redefineStruct(StructDefinition prev, StructDefinition next) {
         if (!structs.contains(prev)) return;
         structs.remove(prev);
         structs.add(next);
+        Widget addMe = null;
+        Widget removeMe = null;
         for (Widget w : widgets) {
             if (w instanceof NodeWidget n && n.node instanceof StructDefinition.InitializationNode i) {
-                if (i.getDefinition() != prev) continue;
-                if (n.node == prev.initNode) {
-                    widgets.add(new NodeWidget(n.origin, inst, next.initNode));
+                if (i.getDefinition() == prev) {
+                    if (n.node == prev.initNode) addMe = new NodeWidget(n.origin, inst, next.initNode);
+                    removeMe = n;
+                    break;
                 }
-                remove(n);
             }
         }
+        if (removeMe != null) remove(removeMe);
+        if (addMe != null) widgets.add(addMe);
     }
 
-    public void remove(FunctionDefinition fn) {
+    public void removeFunc(FunctionDefinition fn) {
         if (!functions.contains(fn)) return;
         functions.remove(fn);
         List<Widget> removeMe = new ArrayList<>();
         for (Widget w : widgets) {
-            if (w instanceof NodeWidget n) {
-                if (n.node instanceof FunctionDefinition.DefinitionNode d) {
-                    if (d.getDefinition() != fn) continue;
-                    removeMe.add(n);
-                }
+            if (w instanceof NodeWidget n && n.node instanceof FunctionDefinition.DefinitionNode d) {
+                if (d.getDefinition() != fn) continue;
+                removeMe.add(n);
             }
         }
         for (Widget w : removeMe) remove(w);
+    }
+
+    public void removeStruct(StructDefinition st) {
+        if (!structs.contains(st)) return;
+        structs.remove(st);
+        Widget removeMe = null;
+        for (Widget w : widgets) {
+            if (w instanceof NodeWidget n && n.node instanceof StructDefinition.InitializationNode i) {
+                if (i.getDefinition() == st) {
+                    removeMe = n;
+                    break;
+                }
+            }
+        }
+        if (removeMe != null) remove(removeMe);
     }
 
     public boolean funcInUse(FunctionDefinition check) {

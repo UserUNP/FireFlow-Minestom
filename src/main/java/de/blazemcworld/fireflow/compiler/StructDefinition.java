@@ -22,8 +22,8 @@ public final class StructDefinition {
 
     public final StructValue type;
     public final String stName;
-    public final FunctionDefinition definition;
     public final InitializationNode initNode;
+    private final FunctionDefinition initializer;
 
     public StructDefinition(StructValue type) {
         this.type = type;
@@ -34,7 +34,7 @@ public final class StructDefinition {
             StructValue.Field field = type.fields.get(i);
             fnInputs.add(new NodeOutput(field.name(), field.type()));
         }
-        definition = new FunctionDefinition(stName + " Struct", fnInputs, List.of()); //TODO: wait for optional node inputs
+        initializer = new FunctionDefinition(stName + " Initializer", fnInputs, List.of()); //TODO: wait for optional node inputs
         initNode = new InitializationNode();
     }
 
@@ -46,7 +46,7 @@ public final class StructDefinition {
         public final FunctionDefinition.DefinitionNode fnInputsNode;
         public InitializationNode() {
             super(stName + " Initializer");
-            this.fnInputsNode = StructDefinition.this.definition.fnInputsNode;
+            this.fnInputsNode = StructDefinition.this.initializer.fnInputsNode;
             outputs = fnInputsNode.outputs;
         }
 
@@ -65,14 +65,14 @@ public final class StructDefinition {
         public Create() {
             super(stName);
 
-            int size = definition.fnInputs.size() - 1;
-            ArrayList<NodeOutput> fnInputs = new ArrayList<>(size);
-            for (int i = 1; i < size; i++) {
-                NodeOutput in = definition.fnInputs.get(i);
-                fnInputs.add(new NodeOutput(in.getName(), in.type));
+            int size = initializer.fnInputs.size() - 1;
+            ArrayList<NodeOutput> createInputs = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                NodeOutput in = initializer.fnInputs.get(i + 1);
+                createInputs.add(new NodeOutput(in.getName(), in.type));
             }
 
-            FunctionDefinition.Call defCall = definition.createCall();
+            FunctionDefinition.Call defCall = initializer.createCall();
             NodeOutput struct = new NodeOutput(stName, type);
             Instruction[] instructions = new Instruction[size + 2];
             instructions[0] = defCall.inputs.getFirst();
@@ -81,7 +81,7 @@ public final class StructDefinition {
                     new TypeInsnNode(Opcodes.ANEWARRAY, "java/lang/Object")
             );
             for (int i = 0; i < size; i++) {
-                NodeOutput out = fnInputs.get(i);
+                NodeOutput out = createInputs.get(i);
                 defCall.inputs.get(i + 1).connectValue(out);
                 instructions[i + 2] = new MultiInstruction(Type.VOID_TYPE,
                         new RawInstruction(Type.VOID_TYPE,
@@ -97,7 +97,7 @@ public final class StructDefinition {
             NodeInput createOut = new NodeInput(stName, type);
             createOut.connectValue(struct);
 
-            funcCall = new FunctionDefinition(stName, fnInputs, List.of(createOut)).createCall();
+            funcCall = new FunctionDefinition(stName, createInputs, List.of(createOut)).createCall();
             inputs = funcCall.inputs;
             outputs = funcCall.outputs;
         }

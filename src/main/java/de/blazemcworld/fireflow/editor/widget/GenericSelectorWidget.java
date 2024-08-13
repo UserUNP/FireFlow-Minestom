@@ -7,7 +7,6 @@ import de.blazemcworld.fireflow.util.TextWidth;
 import de.blazemcworld.fireflow.value.Value;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
@@ -39,11 +38,11 @@ public class GenericSelectorWidget implements Widget {
         border = new RectWidget(editor.inst, bounds);
 
         Vec pos = Vec.fromPoint(origin).add(width * 0.5, 0.5 * height - 0.25, 0);
-        label = new TextWidget(pos, editor.inst, Component.text("Select " + name + ":", Style.style(TextDecoration.ITALIC)));
+        label = new TextWidget(pos, editor.inst, Component.text("» Select " + name + ":", NamedTextColor.YELLOW, TextDecoration.ITALIC));
 
         for (Value option : options) {
             pos = Vec.fromPoint(pos).add(0, -0.3, 0);
-            ButtonWidget btn = new ButtonWidget(pos, editor.inst, Component.text(option.getBaseName()).color(NamedTextColor.AQUA));
+            ButtonWidget btn = new ButtonWidget(pos, editor.inst, Component.text(option.getBaseName()).color(option.getColor()));
             btn.rightClick = (player, _editor) -> {
                 if (option.possibleGenerics().isEmpty()) {
                     callback.accept(option);
