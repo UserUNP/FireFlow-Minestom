@@ -79,9 +79,9 @@ public class WireWidget implements Widget {
             index++;
         }
         if (input.input.type == SignalValue.INSTANCE) {
-            input.disconnect();
-        } else {
             output.disconnect();
+        } else {
+            input.disconnect();
         }
     }
 

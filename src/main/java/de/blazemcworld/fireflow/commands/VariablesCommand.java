@@ -10,6 +10,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.arguments.ArgumentString;
+import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 
 import java.util.List;
@@ -82,6 +84,19 @@ public class VariablesCommand extends Command {
         if (value instanceof Component c) {
             return MessageValue.MM.serialize(c);
         }
+        if (value instanceof Pos p) {
+            return "Position (" + shorten(p.x()) + ", " + shorten(p.y()) + ", " + shorten(p.z()) + ", " + shorten(p.pitch()) + ", " + shorten(p.yaw()) + ")";
+        }
+        if (value instanceof Vec v) {
+            return "Vector (" + shorten(v.x()) + ", " + shorten(v.y()) + ", " + shorten(v.z()) + ")";
+        }
+        if (value instanceof Map<?,?> m) {
+            return "Dictionary (" + m.size() + " entries)";
+        }
         return String.valueOf(value);
+    }
+
+    private String shorten(double v) {
+        return String.format("%.3f", v);
     }
 }

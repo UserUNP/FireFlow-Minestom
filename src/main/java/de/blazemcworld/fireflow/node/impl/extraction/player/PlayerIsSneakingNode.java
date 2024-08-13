@@ -3,28 +3,28 @@ package de.blazemcworld.fireflow.node.impl.extraction.player;
 import de.blazemcworld.fireflow.node.ExtractionNode;
 import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
 import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
+import de.blazemcworld.fireflow.value.ConditionValue;
 import de.blazemcworld.fireflow.value.PlayerValue;
-import de.blazemcworld.fireflow.value.TextValue;
 import net.minestom.server.entity.Player;
 
-public class PlayerNameNode extends ExtractionNode {
+public class PlayerIsSneakingNode extends ExtractionNode {
 
-    public PlayerNameNode() {
-        super("Player Name", PlayerValue.INSTANCE, TextValue.INSTANCE);
+    public PlayerIsSneakingNode() {
+        super("Player is Sneaking", PlayerValue.INSTANCE, ConditionValue.INSTANCE);
 
-        loadJava(PlayerNameNode.class);
+        loadJava(PlayerIsSneakingNode.class);
     }
 
     @FlowValueOutput("")
-    private static String output() {
+    private static boolean output() {
         Player player = input().resolve();
-        String name = "";
-        if (player != null) name = player.getUsername();
-        return name;
+
+        return player != null && player.isSneaking();
     }
 
     @FlowValueInput("")
     private static PlayerValue.Reference input() {
         throw new IllegalStateException();
     }
+
 }

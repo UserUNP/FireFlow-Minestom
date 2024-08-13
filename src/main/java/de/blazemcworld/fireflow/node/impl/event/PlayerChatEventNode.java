@@ -9,21 +9,20 @@ import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
 import de.blazemcworld.fireflow.value.PlayerValue;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.TextValue;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerEntityInteractEvent;
+import net.minestom.server.event.player.PlayerChatEvent;
 
-public class PlayerInteractEventNode extends Node {
+public class PlayerChatEventNode extends Node {
 
     private final NodeOutput signal;
 
-    public PlayerInteractEventNode() {
-        super("Player Interact");
+    public PlayerChatEventNode() {
+        super("Player Chat");
 
         signal = output("Signal", SignalValue.INSTANCE);
         output("Player", PlayerValue.INSTANCE);
-        output("Hand", TextValue.INSTANCE);
+        output("Message", TextValue.INSTANCE);
 
-        loadJava(PlayerInteractEventNode.class);
+        loadJava(PlayerChatEventNode.class);
     }
 
     @FlowValueOutput("Player")
@@ -31,9 +30,9 @@ public class PlayerInteractEventNode extends Node {
         return ctx().getInternalVar("ID$player");
     }
 
-    @FlowValueOutput("Hand")
-    private static Object hand() {
-        return ctx().getInternalVar("ID$hand");
+    @FlowValueOutput("Message")
+    private static Object message() {
+        return ctx().getInternalVar("ID$message");
     }
 
     @FlowContext
@@ -44,17 +43,10 @@ public class PlayerInteractEventNode extends Node {
     @Override
     public void register(CodeEvaluator evaluator) {
         String entrypoint = evaluator.compiler.markRoot(signal);
-        evaluator.events.addListener(PlayerBlockInteractEvent.class, event -> {
+        evaluator.events.addListener(PlayerChatEvent.class, event -> {
             CompiledNode context = evaluator.newContext();
             context.setInternalVar(allocateId("player"), new PlayerValue.Reference(evaluator.space, event.getPlayer()));
-            context.setInternalVar(allocateId("hand"), event.getHand().name().toLowerCase());
-            context.emit(entrypoint);
-        });
-
-        evaluator.events.addListener(PlayerEntityInteractEvent.class, event -> {
-            CompiledNode context = evaluator.newContext();
-            context.setInternalVar(allocateId("player"), new PlayerValue.Reference(evaluator.space, event.getPlayer()));
-            context.setInternalVar(allocateId("hand"), event.getHand().name().toLowerCase());
+            context.setInternalVar(allocateId("message"), event.getMessage());
             context.emit(entrypoint);
         });
     }

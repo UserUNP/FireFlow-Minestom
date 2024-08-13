@@ -8,32 +8,24 @@ import de.blazemcworld.fireflow.node.annotation.FlowContext;
 import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
 import de.blazemcworld.fireflow.value.PlayerValue;
 import de.blazemcworld.fireflow.value.SignalValue;
-import de.blazemcworld.fireflow.value.TextValue;
-import net.minestom.server.event.player.PlayerBlockInteractEvent;
-import net.minestom.server.event.player.PlayerEntityInteractEvent;
+import net.minestom.server.event.player.PlayerStopFlyingEvent;
 
-public class PlayerInteractEventNode extends Node {
+public class PlayerStopFlyingEventNode extends Node {
 
     private final NodeOutput signal;
 
-    public PlayerInteractEventNode() {
-        super("Player Interact");
+    public PlayerStopFlyingEventNode() {
+        super("Player Stop Flying");
 
         signal = output("Signal", SignalValue.INSTANCE);
         output("Player", PlayerValue.INSTANCE);
-        output("Hand", TextValue.INSTANCE);
 
-        loadJava(PlayerInteractEventNode.class);
+        loadJava(PlayerStopFlyingEventNode.class);
     }
 
     @FlowValueOutput("Player")
     private static Object player() {
         return ctx().getInternalVar("ID$player");
-    }
-
-    @FlowValueOutput("Hand")
-    private static Object hand() {
-        return ctx().getInternalVar("ID$hand");
     }
 
     @FlowContext
@@ -44,18 +36,11 @@ public class PlayerInteractEventNode extends Node {
     @Override
     public void register(CodeEvaluator evaluator) {
         String entrypoint = evaluator.compiler.markRoot(signal);
-        evaluator.events.addListener(PlayerBlockInteractEvent.class, event -> {
+        evaluator.events.addListener(PlayerStopFlyingEvent.class, event -> {
             CompiledNode context = evaluator.newContext();
             context.setInternalVar(allocateId("player"), new PlayerValue.Reference(evaluator.space, event.getPlayer()));
-            context.setInternalVar(allocateId("hand"), event.getHand().name().toLowerCase());
-            context.emit(entrypoint);
-        });
-
-        evaluator.events.addListener(PlayerEntityInteractEvent.class, event -> {
-            CompiledNode context = evaluator.newContext();
-            context.setInternalVar(allocateId("player"), new PlayerValue.Reference(evaluator.space, event.getPlayer()));
-            context.setInternalVar(allocateId("hand"), event.getHand().name().toLowerCase());
             context.emit(entrypoint);
         });
     }
+
 }

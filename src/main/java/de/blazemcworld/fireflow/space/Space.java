@@ -5,9 +5,12 @@ import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import de.blazemcworld.fireflow.value.MessageValue;
 import de.blazemcworld.fireflow.value.PlayerValue;
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.BlockVec;
+import net.minestom.server.coordinate.Pos;
+import net.minestom.server.coordinate.Vec;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.event.trait.InstanceEvent;
@@ -123,6 +126,26 @@ public class Space {
             } else if (obj instanceof PlayerValue.Reference ref) {
                 buffer.write(NetworkBuffer.BYTE, (byte) 5);
                 buffer.write(NetworkBuffer.UUID, ref.uuid());
+            } else if (obj instanceof Pos pos) {
+                buffer.write(NetworkBuffer.BYTE, (byte) 6);
+                buffer.write(NetworkBuffer.DOUBLE, pos.x());
+                buffer.write(NetworkBuffer.DOUBLE, pos.y());
+                buffer.write(NetworkBuffer.DOUBLE, pos.z());
+                buffer.write(NetworkBuffer.FLOAT, pos.yaw());
+                buffer.write(NetworkBuffer.FLOAT, pos.pitch());
+            } else if (obj instanceof Vec vec) {
+                buffer.write(NetworkBuffer.BYTE, (byte) 7);
+                buffer.write(NetworkBuffer.DOUBLE, vec.x());
+                buffer.write(NetworkBuffer.DOUBLE, vec.y());
+                buffer.write(NetworkBuffer.DOUBLE, vec.z());
+            } else if (obj instanceof Map<?, ?> map) {
+                buffer.write(NetworkBuffer.BYTE, (byte) 8);
+                buffer.write(NetworkBuffer.INT, map.size());
+
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    buffer.write(NetworkBuffer.INT, objects.indexOf(entry.getKey()));
+                    buffer.write(NetworkBuffer.INT, objects.indexOf(entry.getValue()));
+                }
             }
         }
 
@@ -146,6 +169,10 @@ public class Space {
             if (!out.contains(each)) out.add(each);
             if (each instanceof List<?> l) {
                 collectObjects(out, (Collection<Object>) l);
+            }
+            if (each instanceof Map<?, ?> m) {
+                collectObjects(out, (Collection<Object>) m.keySet());
+                collectObjects(out, (Collection<Object>) m.values());
             }
         }
     }
@@ -188,6 +215,39 @@ public class Space {
                     objects.add(list);
                 }
                 case 5 -> objects.add(new PlayerValue.Reference(this, buffer.read(NetworkBuffer.UUID)));
+                case 6 -> {
+                    double x = buffer.read(NetworkBuffer.DOUBLE);
+                    double y = buffer.read(NetworkBuffer.DOUBLE);
+                    double z = buffer.read(NetworkBuffer.DOUBLE);
+                    float yaw = buffer.read(NetworkBuffer.FLOAT);
+                    float pitch = buffer.read(NetworkBuffer.FLOAT);
+                    objects.add(new Pos(x, y, z, yaw, pitch));
+                }
+                case 7 -> {
+                    double x = buffer.read(NetworkBuffer.DOUBLE);
+                    double y = buffer.read(NetworkBuffer.DOUBLE);
+                    double z = buffer.read(NetworkBuffer.DOUBLE);
+                    objects.add(new Vec(x, y, z));
+                }
+                case 8 -> {
+                    Map<Object, Object> map = new HashMap<>();
+                    int size = buffer.read(NetworkBuffer.INT);
+
+                    List<Pair<Integer, Integer>> pairs = new ArrayList<>();
+                    for (int j = 0; j < size; j++) {
+                        int keyId = buffer.read(NetworkBuffer.INT);
+                        int valueId = buffer.read(NetworkBuffer.INT);
+
+                        pairs.add(Pair.of(keyId, valueId));
+                    }
+
+                    connect.add(() -> {
+                        for (Pair<Integer, Integer> pair : pairs) {
+                            map.put(objects.get(pair.left()), objects.get(pair.right()));
+                        }
+                    });
+                    objects.add(map);
+                }
             }
         }
 

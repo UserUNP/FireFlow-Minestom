@@ -2,6 +2,7 @@ package de.blazemcworld.fireflow.util;
 
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.Player;
+import net.minestom.server.entity.attribute.AttributeInstance;
 
 public class Statistics {
 
@@ -17,6 +18,9 @@ public class Statistics {
         player.setInvulnerable(false);
         player.setLevel(0);
         player.setHealth(20);
+        for (AttributeInstance attr : player.getAttributes()) {
+            attr.clearModifiers();
+        }
     }
 
 }

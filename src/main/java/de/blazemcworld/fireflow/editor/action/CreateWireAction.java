@@ -123,7 +123,6 @@ public class CreateWireAction implements EditorAction {
             if (widget.node instanceof ExtractionNode extraction) {
                 extraction.input.connectValue(nodeOutput);
                 NodeOutputWidget outputWidget = (NodeOutputWidget) origin;
-                outputWidget.disconnect();
                 widget.inputs.getFirst().addWire(new WireWidget(editor.inst, widget.inputs.getFirst(), outputWidget, relays));
             } else {
                 FireFlow.LOGGER.error("Node {} is not an extraction node!", widget.node);

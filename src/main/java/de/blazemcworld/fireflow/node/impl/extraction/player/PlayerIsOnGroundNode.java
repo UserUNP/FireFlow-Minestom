@@ -3,28 +3,28 @@ package de.blazemcworld.fireflow.node.impl.extraction.player;
 import de.blazemcworld.fireflow.node.ExtractionNode;
 import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
 import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
+import de.blazemcworld.fireflow.value.ConditionValue;
 import de.blazemcworld.fireflow.value.PlayerValue;
-import de.blazemcworld.fireflow.value.TextValue;
 import net.minestom.server.entity.Player;
 
-public class PlayerNameNode extends ExtractionNode {
+public class PlayerIsOnGroundNode extends ExtractionNode {
 
-    public PlayerNameNode() {
-        super("Player Name", PlayerValue.INSTANCE, TextValue.INSTANCE);
+    public PlayerIsOnGroundNode() {
+        super("Player Is On Ground", PlayerValue.INSTANCE, ConditionValue.INSTANCE);
 
-        loadJava(PlayerNameNode.class);
+        loadJava(PlayerIsOnGroundNode.class);
     }
 
     @FlowValueOutput("")
-    private static String output() {
+    private static boolean output() {
         Player player = input().resolve();
-        String name = "";
-        if (player != null) name = player.getUsername();
-        return name;
+
+        return player != null && player.isOnGround();
     }
 
     @FlowValueInput("")
     private static PlayerValue.Reference input() {
         throw new IllegalStateException();
     }
+
 }

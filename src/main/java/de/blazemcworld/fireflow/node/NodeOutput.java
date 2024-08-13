@@ -12,7 +12,6 @@ public class NodeOutput implements Instruction {
     public final Value type;
     public NodeInput target;
     private Instruction instruction = null;
-    public final String id = Node.allocateId();
 
     public NodeOutput(String name, Value type) {
         this.name = name;

@@ -4,23 +4,21 @@ import de.blazemcworld.fireflow.node.ExtractionNode;
 import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
 import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
 import de.blazemcworld.fireflow.value.PlayerValue;
-import de.blazemcworld.fireflow.value.TextValue;
+import de.blazemcworld.fireflow.value.PositionValue;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.entity.Player;
 
-public class PlayerNameNode extends ExtractionNode {
+public class PlayerPositionNode extends ExtractionNode {
+    public PlayerPositionNode() {
+        super("Player Position", PlayerValue.INSTANCE, PositionValue.INSTANCE);
 
-    public PlayerNameNode() {
-        super("Player Name", PlayerValue.INSTANCE, TextValue.INSTANCE);
-
-        loadJava(PlayerNameNode.class);
+        loadJava(PlayerPositionNode.class);
     }
 
     @FlowValueOutput("")
-    private static String output() {
-        Player player = input().resolve();
-        String name = "";
-        if (player != null) name = player.getUsername();
-        return name;
+    private static Pos output() {
+        Player p = input().resolve();
+        return p == null ? Pos.ZERO : p.getPosition();
     }
 
     @FlowValueInput("")

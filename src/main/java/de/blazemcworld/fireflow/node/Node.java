@@ -1,15 +1,13 @@
 package de.blazemcworld.fireflow.node;
 
-import de.blazemcworld.fireflow.compiler.StructDefinition;
+import de.blazemcworld.fireflow.compiler.CompiledNode;
 import de.blazemcworld.fireflow.compiler.NodeCompiler;
+import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
-import de.blazemcworld.fireflow.node.annotation.FlowSignalInput;
-import de.blazemcworld.fireflow.node.annotation.FlowSignalOutput;
-import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
-import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
+import de.blazemcworld.fireflow.node.annotation.*;
 import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
@@ -21,7 +19,9 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Node {
 
@@ -47,9 +47,11 @@ public abstract class Node {
 
     public void register(CodeEvaluator evaluator) {}
 
-    protected static long id = 0;
-    public static String allocateId() {
-        return Long.toHexString(id++);
+    protected static long idCounter = 0;
+    private final Map<String, String> myIds = new HashMap<>();
+
+    public String allocateId(String generalId) {
+        return myIds.computeIfAbsent(generalId, _id -> Long.toHexString(idCounter++));
     }
 
     public String getBaseName() {
@@ -127,7 +129,7 @@ public abstract class Node {
 
                         Instruction insn = convertJava(classNode, clazz, m);
                         if (m.getReturnType() == Object.class) {
-                            insn = output.type.cast(output);
+                            insn = output.type.cast(insn);
                         }
                         output.setInstruction(new MultiInstruction(output.type.getType(), insn));
                     }
@@ -173,6 +175,10 @@ public abstract class Node {
                                 continue update;
                             }
                         }
+                        if (other.isAnnotationPresent(FlowContext.class)) {
+                            all.add(new RawInstruction(Type.getType(CompiledNode.class), new VarInsnNode(Opcodes.ALOAD, 0)));
+                            continue update;
+                        }
                     }
                 }
                 if (insn instanceof VarInsnNode v) {
@@ -197,9 +203,34 @@ public abstract class Node {
                     });
                     continue;
                 }
+                if (insn instanceof IincInsnNode v) {
+                    int which = v.var;
+                    maxVar = Math.max(maxVar, which);
+                    all.add(new Instruction() {
+                        @Override
+                        public void prepare(NodeCompiler ctx) {}
+
+                        @Override
+                        public InsnList compile(NodeCompiler ctx, int usedVars) {
+                            InsnList out = new InsnList();
+                            v.var = which + usedVars;
+                            out.add(v);
+                            return out;
+                        }
+
+                        @Override
+                        public Type returnType() {
+                            return null;
+                        }
+                    });
+                    continue;
+                }
                 if (insn.getOpcode() >= Opcodes.IRETURN && insn.getOpcode() <= Opcodes.RETURN) {
                     returnCount++;
                     continue;
+                }
+                if (insn instanceof LdcInsnNode ldc && ldc.cst instanceof String str && str.startsWith("ID$")) {
+                    ldc.cst = allocateId(str.substring(3));
                 }
 
                 if (insn instanceof FrameNode || insn instanceof LineNumberNode) continue;
