@@ -4,14 +4,14 @@ import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.compiler.StructDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.widget.GenericSelectorWidget;
-import de.blazemcworld.fireflow.node.impl.AddNumbersNode;
 import de.blazemcworld.fireflow.node.impl.WhileNode;
-import de.blazemcworld.fireflow.node.impl.event.PlayerJoinEvent;
+import de.blazemcworld.fireflow.node.impl.event.PlayerJoinEventNode;
 import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
 import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
 import de.blazemcworld.fireflow.node.impl.lists.ListAppendNode;
+import de.blazemcworld.fireflow.node.impl.number.AddNumbersNode;
 import de.blazemcworld.fireflow.node.impl.player.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.*;
 import de.blazemcworld.fireflow.value.*;
@@ -42,7 +42,7 @@ public record NodeCategory(String name, NodesSupplier supplier) {
     }
 
     public final static NodeCategory EVENTS = new NodeCategory("Events", (e, o) -> List.of(
-            Entry.of("On Player Join", cb -> cb.accept(new PlayerJoinEvent()))
+            Entry.of("On Player Join", cb -> cb.accept(new PlayerJoinEventNode()))
     ));
 
     public final static NodeCategory NUMBERS = new NodeCategory("Numbers", (e, o) -> List.of(
