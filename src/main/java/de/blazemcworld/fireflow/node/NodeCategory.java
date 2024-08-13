@@ -10,7 +10,7 @@ import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.PlayerUUIDNode;
 import de.blazemcworld.fireflow.node.impl.extraction.struct.StructFieldNode;
 import de.blazemcworld.fireflow.node.impl.extraction.text.TextToMessageNode;
-import de.blazemcworld.fireflow.node.impl.lists.ListAppendNode;
+import de.blazemcworld.fireflow.node.impl.list.ListAppendNode;
 import de.blazemcworld.fireflow.node.impl.number.AddNumbersNode;
 import de.blazemcworld.fireflow.node.impl.player.SendMessageNode;
 import de.blazemcworld.fireflow.node.impl.variable.*;
