@@ -3,6 +3,9 @@ package de.blazemcworld.fireflow.compiler;
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import de.blazemcworld.fireflow.space.Space;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -62,6 +65,23 @@ public abstract class CompiledNode {
 
     public void setInternalVar(String key, Object value) {
         internalVars.peek().put(key, value);
+    }
+
+    @SuppressWarnings("unused") // Used by asm
+    protected void runScheduled(double delay, String id) {
+        CompiledNode ctx = evaluator.newContext();
+        ctx.locals = this.locals;
+        ctx.internalVars.addAll(this.internalVars);
+
+        Task[] t = new Task[] {null};
+
+        Runnable stop = () -> t[0].cancel();
+        t[0] = MinecraftServer.getSchedulerManager().scheduleTask(() -> {
+            evaluator.stopEvents.remove(stop);
+            ctx.emit(id);
+            return TaskSchedule.stop();
+        }, TaskSchedule.tick((int) Math.max(delay, 1)));
+        evaluator.stopEvents.add(stop);
     }
 
     public void emit(String entry) {

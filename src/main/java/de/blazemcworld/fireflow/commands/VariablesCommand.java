@@ -73,7 +73,7 @@ public class VariablesCommand extends Command {
         }
         if (value instanceof PlayerValue.Reference p) {
             Player player = p.resolve();
-            if (p == null) {
+            if (player == null) {
                 return "Offline Player (" + p.uuid() + ")";
             } else {
                 return player.getUsername() + " (" + p.uuid() + ")";

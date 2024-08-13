@@ -1,47 +1,53 @@
 package de.blazemcworld.fireflow.node.impl.player;
 
-import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
-import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeInput;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.annotation.FlowSignalInput;
+import de.blazemcworld.fireflow.node.annotation.FlowSignalOutput;
+import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
 import de.blazemcworld.fireflow.value.MessageValue;
 import de.blazemcworld.fireflow.value.PlayerValue;
 import de.blazemcworld.fireflow.value.SignalValue;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.MethodInsnNode;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
+import net.minestom.server.entity.Player;
 
 public class SendTitleNode extends Node {
     public SendTitleNode() {
         super("Send Title");
 
-        NodeInput signal = input("Signal", SignalValue.INSTANCE);
-        NodeInput player = input("Player", PlayerValue.INSTANCE);
-        NodeInput title = input("Title", MessageValue.INSTANCE);
-        NodeInput subtitle = input("Subtitle", MessageValue.INSTANCE);
-        NodeOutput next = output("Next", SignalValue.INSTANCE);
+        input("Signal", SignalValue.INSTANCE);
+        input("Player", PlayerValue.INSTANCE);
+        input("Title", MessageValue.INSTANCE);
+        input("Subtitle", MessageValue.INSTANCE);
+        output("Next", SignalValue.INSTANCE);
 
-        signal.setInstruction(new MultiInstruction(
-                Type.VOID_TYPE,
-                PlayerValue.use(player, new MultiInstruction(Type.VOID_TYPE,
-                        title,
-                        subtitle,
-                        new RawInstruction(Type.VOID_TYPE, new MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/kyori/adventure/title/Title",
-                                "title",
-                                "(Lnet/kyori/adventure/text/Component;Lnet/kyori/adventure/text/Component;)Lnet/kyori/adventure/title/Title;",
-                                true
-                        )),
-                        new RawInstruction(Type.VOID_TYPE, new MethodInsnNode(
-                                Opcodes.INVOKEINTERFACE,
-                                "net/kyori/adventure/audience/Audience",
-                                "showTitle",
-                                "(Lnet/kyori/adventure/title/Title;)V"
-                        ))
-                ), null),
-                next
-        ));
+        loadJava(SendTitleNode.class);
+    }
+
+    @FlowSignalInput("Signal")
+    private static void run() {
+        Player p = player().resolve();
+        if (p != null) p.showTitle(Title.title(title(), subtitle()));
+        next();
+    }
+
+    @FlowValueInput("Player")
+    private static PlayerValue.Reference player() {
+        throw new IllegalStateException();
+    }
+
+    @FlowValueInput("Title")
+    private static Component title() {
+        throw new IllegalStateException();
+    }
+
+    @FlowValueInput("Subtitle")
+    private static Component subtitle() {
+        throw new IllegalStateException();
+    }
+
+    @FlowSignalOutput("Next")
+    private static void next() {
+        throw new IllegalStateException();
     }
 }

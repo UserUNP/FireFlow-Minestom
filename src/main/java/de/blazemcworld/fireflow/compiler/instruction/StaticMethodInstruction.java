@@ -20,12 +20,12 @@ public record StaticMethodInstruction(Class<?> owner, String method, Type return
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
         List<Type> paramTypes = new ArrayList<>();
         for (Pair<Type, Instruction> arg : arguments) {
             paramTypes.add(arg.first());
-            out.add(ctx.compile(arg.second()));
+            out.add(ctx.compile(arg.second(), usedVars));
         }
         out.add(new MethodInsnNode(Opcodes.INVOKESTATIC, owner.getName().replace('.', '/'), method, Type.getMethodDescriptor(returnType, paramTypes.toArray(new Type[0])), owner.isInterface()));
         return out;

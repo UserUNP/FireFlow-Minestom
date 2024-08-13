@@ -49,11 +49,11 @@ public final class FunctionDefinition {
                 }
 
                 @Override
-                public InsnList compile(NodeCompiler ctx) {
+                public InsnList compile(NodeCompiler ctx, int usedVars) {
                     InsnList out = new InsnList();
                     LabelNode end = new LabelNode();
 
-                    out.add(ctx.compile(peek));
+                    out.add(ctx.compile(peek, usedVars));
                     for (Map.Entry<Call, Integer> e : calls.entrySet()) {
                         for (NodeInput other : e.getKey().inputs) {
                             if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
@@ -63,7 +63,7 @@ public final class FunctionDefinition {
                             LabelNode next = new LabelNode();
                             out.add(new JumpInsnNode(Opcodes.IF_ICMPNE, next));
                             out.add(new InsnNode(Opcodes.POP));
-                            out.add(ctx.compile(other));
+                            out.add(ctx.compile(other, usedVars));
                             out.add(new JumpInsnNode(Opcodes.GOTO, end));
                             out.add(next);
                         }
@@ -100,11 +100,11 @@ public final class FunctionDefinition {
                 }
 
                 @Override
-                public InsnList compile(NodeCompiler ctx) {
+                public InsnList compile(NodeCompiler ctx, int usedVars) {
                     InsnList out = new InsnList();
                     LabelNode end = new LabelNode();
 
-                    out.add(ctx.compile(peek));
+                    out.add(ctx.compile(peek, usedVars));
                     for (Map.Entry<Call, Integer> e : calls.entrySet()) {
                         for (NodeOutput other : e.getKey().outputs) {
                             if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
@@ -114,7 +114,7 @@ public final class FunctionDefinition {
                             LabelNode next = new LabelNode();
                             out.add(new JumpInsnNode(Opcodes.IF_ICMPNE, next));
                             out.add(new InsnNode(Opcodes.POP));
-                            out.add(ctx.compile(other));
+                            out.add(ctx.compile(other, usedVars));
                             out.add(new JumpInsnNode(Opcodes.GOTO, end));
                             out.add(next);
                         }

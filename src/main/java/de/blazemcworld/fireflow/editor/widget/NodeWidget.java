@@ -53,6 +53,7 @@ public class NodeWidget implements Widget {
             } else {
                 text = "○ " + input.getName();
             }
+            if (input.hasDefault()) text += "*";
             inputWidth = Math.max(inputWidth, TextWidth.calculate(text, false) / 40);
         }
         double outputWidth = 0.1;
@@ -95,9 +96,18 @@ public class NodeWidget implements Widget {
         int index = 0;
         for (NodeInput input : node.inputs) {
             if (init) {
-                NodeInputWidget btn = new NodeInputWidget(pos, inst, Component.text("○ " + input.getName()).color(input.type.getColor()), input, this);
+                Component text = Component.text("○ " + input.getName()).color(input.type.getColor());
+                if (input.hasDefault()) text = text.append(Component.text("*").color(NamedTextColor.GRAY));
+                NodeInputWidget btn = new NodeInputWidget(pos, inst, text, input, this);
                 inputs.add(btn);
-                btn.leftClick = (player, editor) -> tryRemove(editor);
+                btn.leftClick = (player, editor) -> {
+                    if (input.getInset() != null) {
+                        input.inset(null);
+                        btn.update();
+                        return;
+                    }
+                    tryRemove(editor);
+                };
                 btn.rightClick = (player, editor) -> editor.setAction(player, new CreateWireAction(input, btn, player, editor));
             } else {
                 inputs.get(index).position = pos;

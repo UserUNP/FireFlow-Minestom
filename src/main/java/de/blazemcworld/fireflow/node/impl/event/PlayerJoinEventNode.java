@@ -17,12 +17,12 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 import java.util.List;
 
-public class PlayerJoinEvent extends Node {
+public class PlayerJoinEventNode extends Node {
 
     private final NodeOutput signalOutput;
     private final NodeOutput playerOutput;
 
-    public PlayerJoinEvent() {
+    public PlayerJoinEventNode() {
         super("Player Join");
 
         signalOutput = output("Signal", SignalValue.INSTANCE);

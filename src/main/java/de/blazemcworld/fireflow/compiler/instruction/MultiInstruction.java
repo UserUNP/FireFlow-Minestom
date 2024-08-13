@@ -14,10 +14,10 @@ public record MultiInstruction(Type returnType, Instruction... instructions) imp
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
         for (Instruction i : instructions) {
-            out.add(ctx.compile(i));
+            out.add(ctx.compile(i, usedVars));
         }
         return out;
     }

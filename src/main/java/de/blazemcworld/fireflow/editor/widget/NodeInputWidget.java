@@ -8,6 +8,7 @@ import de.blazemcworld.fireflow.node.NodeInput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerChatEvent;
@@ -40,15 +41,23 @@ public class NodeInputWidget extends ButtonWidget {
     public void addWire(WireWidget wire) {
         wires.add(wire);
         wire.output.connected.add(this);
+        update();
+        wire.output.update();
     }
 
     @Override
     public void update() {
-        if (input != null) if (input.getInset() != null) {
-            text(Component.text("⏹ " + input.type.formatInset(input.getInset())).color(input.type.getColor()));
-        } else {
-            text(Component.text("○ " + input.getName()).color(input.type.getColor()));
+        if (input != null) {
+            Component text;
+            if (input.getInset() != null) {
+                text = Component.text("⏹ " + input.type.formatInset(input.getInset())).color(input.type.getColor());
+            } else {
+                text = Component.text("○ " + input.getName()).color(input.type.getColor());
+            }
+            if (input.hasDefault()) text = text.append(Component.text("*").color(NamedTextColor.GRAY));
+            text(text);
         }
+
         super.update();
         if (wires == null) return;
         for (WireWidget wire : wires) wire.update();

@@ -12,6 +12,7 @@ public class NodeInput implements Instruction {
     public final Value type;
     private NodeOutput source;
     private Object inset;
+    private Object defaultValue;
     private Instruction instruction;
 
     public NodeInput(String name, Value type) {
@@ -60,18 +61,30 @@ public class NodeInput implements Instruction {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         if (type == SignalValue.INSTANCE) {
-            return ctx.compile(instruction);
+            return ctx.compile(instruction, usedVars);
         }
         if (source != null) {
-            return ctx.compile(source);
+            return ctx.compile(source, usedVars);
         }
-        return type.compile(ctx, inset);
+        if (inset != null) {
+            return type.compile(ctx, inset);
+        }
+        return type.compile(ctx, defaultValue);
     }
 
     @Override
     public Type returnType() {
         return type.getType();
+    }
+
+    public NodeInput withDefault(Object value) {
+        defaultValue = value;
+        return this;
+    }
+
+    public boolean hasDefault() {
+        return defaultValue != null;
     }
 }

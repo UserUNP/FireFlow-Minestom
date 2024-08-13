@@ -14,9 +14,9 @@ public record DiscardInstruction(Instruction value) implements Instruction {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList list = new InsnList();
-        list.add(ctx.compile(value));
+        list.add(ctx.compile(value, usedVars));
         list.add(new InsnNode(Opcodes.POP));
         return list;
     }

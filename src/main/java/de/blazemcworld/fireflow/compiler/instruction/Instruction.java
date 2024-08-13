@@ -6,6 +6,6 @@ import org.objectweb.asm.tree.InsnList;
 
 public interface Instruction {
     void prepare(NodeCompiler ctx);
-    InsnList compile(NodeCompiler ctx);
+    InsnList compile(NodeCompiler ctx, int usedVars);
     Type returnType();
 }

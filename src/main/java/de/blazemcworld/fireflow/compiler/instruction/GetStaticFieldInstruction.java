@@ -11,7 +11,7 @@ public record GetStaticFieldInstruction(Class<?> owner, String name, Type type) 
     public void prepare(NodeCompiler ctx) {}
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
         out.add(new FieldInsnNode(Opcodes.GETSTATIC, owner.getName().replace('.', '/'), name, type.getDescriptor()));
         return out;

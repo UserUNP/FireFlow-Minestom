@@ -13,9 +13,9 @@ public record GetInstanceFieldInstruction(Class<?> owner, Instruction target, St
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
-        out.add(ctx.compile(target));
+        out.add(ctx.compile(target, usedVars));
         out.add(new FieldInsnNode(Opcodes.GETFIELD, owner.getName().replace('.', '/'), name, type.getDescriptor()));
         return out;
     }

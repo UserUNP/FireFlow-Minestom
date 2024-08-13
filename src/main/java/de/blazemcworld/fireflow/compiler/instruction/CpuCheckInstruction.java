@@ -12,7 +12,7 @@ public class CpuCheckInstruction implements Instruction {
     public void prepare(NodeCompiler ctx) {}
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
         out.add(new VarInsnNode(Opcodes.ALOAD, 0));
         out.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "de/blazemcworld/fireflow/compiler/CompiledNode", "cpuCheck", "()V"));

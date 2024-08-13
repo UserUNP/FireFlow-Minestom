@@ -21,13 +21,13 @@ public record InstanceMethodInstruction(Class<?> owner, Instruction target, Stri
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList out = new InsnList();
-        out.add(ctx.compile(target));
+        out.add(ctx.compile(target, usedVars));
         List<Type> paramTypes = new ArrayList<>();
         for (Pair<Type, Instruction> arg : arguments) {
             paramTypes.add(arg.first());
-            out.add(ctx.compile(arg.second()));
+            out.add(ctx.compile(arg.second(), usedVars));
         }
         out.add(new MethodInsnNode(owner.isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, owner.getName().replace('.', '/'), method, Type.getMethodDescriptor(returnType, paramTypes.toArray(new Type[0]))));
         return out;

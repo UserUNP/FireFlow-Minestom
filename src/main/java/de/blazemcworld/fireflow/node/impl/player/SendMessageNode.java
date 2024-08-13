@@ -1,41 +1,47 @@
 package de.blazemcworld.fireflow.node.impl.player;
 
-import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
-import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeInput;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.annotation.FlowSignalInput;
+import de.blazemcworld.fireflow.node.annotation.FlowSignalOutput;
+import de.blazemcworld.fireflow.node.annotation.FlowValueInput;
 import de.blazemcworld.fireflow.value.MessageValue;
 import de.blazemcworld.fireflow.value.PlayerValue;
 import de.blazemcworld.fireflow.value.SignalValue;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.MethodInsnNode;
+import net.kyori.adventure.text.Component;
+import net.minestom.server.entity.Player;
 
 public class SendMessageNode extends Node {
 
     public SendMessageNode() {
         super("Send Message");
 
-        NodeInput signal = input("Signal", SignalValue.INSTANCE);
-        NodeInput player = input("Player", PlayerValue.INSTANCE);
-        NodeInput message = input("Message", MessageValue.INSTANCE);
-        NodeOutput next = output("Next", SignalValue.INSTANCE);
+        input("Signal", SignalValue.INSTANCE);
+        input("Player", PlayerValue.INSTANCE);
+        input("Message", MessageValue.INSTANCE);
+        output("Next", SignalValue.INSTANCE);
 
-        signal.setInstruction(new MultiInstruction(
-                Type.VOID_TYPE,
-                PlayerValue.use(player, new MultiInstruction(Type.VOID_TYPE,
-                        message,
-                        new RawInstruction(Type.VOID_TYPE, new MethodInsnNode(
-                                Opcodes.INVOKEINTERFACE,
-                                "net/kyori/adventure/audience/Audience",
-                                "sendMessage",
-                                "(Lnet/kyori/adventure/text/Component;)V",
-                                true
-                        ))
-                ), null),
-                next
-        ));
+        loadJava(SendMessageNode.class);
     }
 
+    @FlowSignalInput("Signal")
+    private static void run() {
+        Player p = player().resolve();
+        if (p != null) p.sendMessage(message());
+        next();
+    }
+
+    @FlowValueInput("Player")
+    private static PlayerValue.Reference player() {
+        throw new IllegalStateException();
+    }
+
+    @FlowValueInput("Message")
+    private static Component message() {
+        throw new IllegalStateException();
+    }
+
+    @FlowSignalOutput("Next")
+    private static void next() {
+        throw new IllegalStateException();
+    }
 }

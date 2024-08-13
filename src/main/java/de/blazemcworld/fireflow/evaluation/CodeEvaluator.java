@@ -15,10 +15,7 @@ import net.minestom.server.event.instance.InstanceTickEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CodeEvaluator {
 
@@ -32,6 +29,7 @@ public class CodeEvaluator {
     private final Class<CompiledNode> compiledClass;
     public long cpuLeft = Config.store.limits().cpuPerTick();
     private boolean stopped = false;
+    public final Set<Runnable> stopEvents = new HashSet<>();
 
     public CodeEvaluator(Space space, CodeEditor editor) {
         this.editor = editor;
@@ -80,6 +78,7 @@ public class CodeEvaluator {
                 player.sendMessage(Messages.error("Space code evaluation has been halted!"));
             }
         }
+        for (Runnable stop : stopEvents) stop.run();
         space.play.eventNode().removeChild(events);
     }
 

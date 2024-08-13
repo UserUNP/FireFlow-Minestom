@@ -11,7 +11,7 @@ public record RawInstruction(Type returnType, AbstractInsnNode... instructions) 
     public void prepare(NodeCompiler ctx) {}
 
     @Override
-    public InsnList compile(NodeCompiler ctx) {
+    public InsnList compile(NodeCompiler ctx, int usedVars) {
         InsnList list = new InsnList();
         for (AbstractInsnNode insn : instructions) {
             list.add(insn);

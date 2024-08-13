@@ -41,6 +41,12 @@ public class NodeCompiler {
             createMethod(entry.getKey());
         }
 
+        for (MethodNode m : classNode.methods) {
+            for (AbstractInsnNode i : m.instructions) {
+                if (i instanceof LabelNode l) l.resetLabel();
+            }
+        }
+
         ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_FRAMES + ClassWriter.COMPUTE_MAXS);
         classNode.accept(w);
         return w.toByteArray();
@@ -54,8 +60,8 @@ public class NodeCompiler {
         methodNode.access = Opcodes.ACC_PUBLIC;
         methodNode.desc = Type.getMethodDescriptor(i.returnType());
 
-        methodNode.instructions.add(new CpuCheckInstruction().compile(this));
-        methodNode.instructions.add(i.compile(this));
+        methodNode.instructions.add(new CpuCheckInstruction().compile(this, 0));
+        methodNode.instructions.add(i.compile(this, 1));
         methodNode.instructions.add(new InsnNode(i.returnType().getOpcode(Opcodes.IRETURN)));
         classNode.methods.add(methodNode);
     }
@@ -71,8 +77,8 @@ public class NodeCompiler {
         if (uses.get(instruction) == 1) instruction.prepare(this);
     }
 
-    public InsnList compile(Instruction i) {
-        if (uses.get(i) <= 1) return i.compile(this);
+    public InsnList compile(Instruction i, int usedVars) {
+        if (uses.get(i) <= 1) return i.compile(this, usedVars);
         String name = names.computeIfAbsent(i, (_i) -> "m" + names.size());
         createMethod(i);
         InsnList out = new InsnList();
