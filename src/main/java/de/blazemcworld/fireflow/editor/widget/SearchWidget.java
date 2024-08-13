@@ -53,8 +53,8 @@ public class SearchWidget<T> implements Widget {
         for (Match<T> m : matches) {
             Component text = Component.text().append(
                     Component.text(m.entry.name.substring(0, m.start == 0 ? 0 : m.start), NamedTextColor.WHITE),
-                    Component.text(m.entry.name.substring(m.start, m.end - 1), NamedTextColor.RED),
-                    Component.text(m.entry.name.substring(m.end == m.entry.name.length() ? m.entry.name.length() : m.end + 1), NamedTextColor.WHITE)
+                    Component.text(m.entry.name.substring(m.start, m.end), NamedTextColor.RED),
+                    Component.text(m.entry.name.substring(m.end), NamedTextColor.WHITE)
             ).build();
             pos = pos.add(0, -0.3, 0);
             ButtonWidget b = new ButtonWidget(pos, inst, text);

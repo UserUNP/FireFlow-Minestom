@@ -9,6 +9,7 @@ import de.blazemcworld.fireflow.node.impl.dictionary.DictionaryKeysNode;
 import de.blazemcworld.fireflow.node.impl.dictionary.DictionarySetNode;
 import de.blazemcworld.fireflow.node.impl.dictionary.EmptyDictionaryNode;
 import de.blazemcworld.fireflow.node.impl.event.*;
+import de.blazemcworld.fireflow.node.impl.extraction.list.ListSizeNode;
 import de.blazemcworld.fireflow.node.impl.extraction.number.NumberToTextNode;
 import de.blazemcworld.fireflow.node.impl.extraction.player.*;
 import de.blazemcworld.fireflow.node.impl.extraction.position.*;
@@ -32,6 +33,7 @@ import de.blazemcworld.fireflow.node.impl.variable.*;
 import de.blazemcworld.fireflow.node.impl.vector.CreateVectorNode;
 import de.blazemcworld.fireflow.node.impl.vector.ScaleVectorNode;
 import de.blazemcworld.fireflow.node.impl.vector.VectorToPositionNode;
+import de.blazemcworld.fireflow.value.ListValue;
 import de.blazemcworld.fireflow.value.NumberValue;
 import de.blazemcworld.fireflow.value.StructValue;
 
@@ -64,12 +66,13 @@ public class NodeList {
                 () -> new ListInsertNode(NumberValue.INSTANCE),
                 () -> new ListRemoveAtNode(NumberValue.INSTANCE),
                 () -> new ListRemoveValueNode(NumberValue.INSTANCE),
+                () -> new ListSizeNode(ListValue.get(NumberValue.INSTANCE)),
                 () -> new RandomListValueNode(NumberValue.INSTANCE),
                 () -> new SetVariableNode(LocalVariableScope.INSTANCE, NumberValue.INSTANCE),
                 () -> new SetVariableNode(PersistentVariableScope.INSTANCE, NumberValue.INSTANCE),
                 () -> new SetVariableNode(SpaceVariableScope.INSTANCE, NumberValue.INSTANCE),
-                () -> new ValuesEqualNode(NumberValue.INSTANCE),
                 () -> new UnpackStructNode(StructValue.UNKNOWN),
+                () -> new ValuesEqualNode(NumberValue.INSTANCE),
                 AddNumbersNode::new,
                 ClearTitleNode::new,
                 ConcatTextsNode::new,

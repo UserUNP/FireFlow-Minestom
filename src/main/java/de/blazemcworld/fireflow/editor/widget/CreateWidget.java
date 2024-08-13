@@ -47,7 +47,7 @@ public class CreateWidget implements Widget {
         border = new RectWidget(inst, bounds);
         Vec originPos = pos;
 
-        pos = pos.add(width / 2, height / 2 - 0.25, 0);
+        pos = originPos.add(width / 2, height / 2 - 0.25, 0);
         label = new TextWidget(pos, inst, text);
 
         pos = pos.add(0, -0.3, 0);
@@ -114,7 +114,7 @@ public class CreateWidget implements Widget {
         selectable.add(newStructBtn);
         selectable.add(nodeSearch);
 
-        pos = pos.add(-width / 2, height / 2 - 0.25, 0);
+        pos = originPos.add(-width / 2, height / 2 - 0.55, 0);
 
         for (NodeCategory c : NodeCategory.CATEGORIES) {
             ButtonWidget btn = new ButtonWidget(pos, inst, Component.text(c.name(), NamedTextColor.AQUA));
