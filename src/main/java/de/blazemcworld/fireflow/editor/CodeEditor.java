@@ -182,7 +182,17 @@ public class CodeEditor {
 
     public void save() {
         NetworkBuffer buffer = new NetworkBuffer();
-        buffer.write(NetworkBuffer.INT, 1); // version
+        buffer.write(NetworkBuffer.INT, 2); // version
+
+        buffer.write(NetworkBuffer.INT, structs.size());
+        for (StructDefinition st : structs) {
+            buffer.write(NetworkBuffer.STRING, st.stName);
+            buffer.write(NetworkBuffer.BYTE, (byte) st.type.fields.size());
+            for (StructValue.Field field : st.type.fields) {
+                buffer.write(NetworkBuffer.STRING, field.name());
+                AllValues.writeValue(buffer, field.type());
+            }
+        }
 
         buffer.write(NetworkBuffer.INT, functions.size());
         for (FunctionDefinition fn : functions) {
@@ -198,16 +208,6 @@ public class CodeEditor {
             for (NodeInput output : fn.fnOutputs) {
                 buffer.write(NetworkBuffer.STRING, output.getName());
                 AllValues.writeValue(buffer, output.type);
-            }
-        }
-
-        buffer.write(NetworkBuffer.INT, structs.size());
-        for (StructDefinition st : structs) {
-            buffer.write(NetworkBuffer.STRING, st.stName);
-            buffer.write(NetworkBuffer.INT, st.type.fields.size());
-            for (StructValue.Field field : st.type.fields) {
-                buffer.write(NetworkBuffer.STRING, field.name());
-                AllValues.writeValue(buffer, field.type());
             }
         }
 
@@ -258,9 +258,12 @@ public class CodeEditor {
         widgets.clear();
 
         NetworkBuffer buffer;
+        int length;
         try {
             if (!Files.exists(filePath)) return;
-            buffer = new NetworkBuffer(ByteBuffer.wrap(Files.readAllBytes(filePath)));
+            ByteBuffer nioBuffer = ByteBuffer.wrap(Files.readAllBytes(filePath));
+            buffer = new NetworkBuffer(nioBuffer);
+            length = nioBuffer.capacity();
         } catch (IOException err) {
             FireFlow.LOGGER.error("Failed to read code file!", err);
             return;
@@ -268,30 +271,41 @@ public class CodeEditor {
 
         int version = buffer.read(NetworkBuffer.INT);
 
-        if (version >= 1) {
-            functions.clear();
-            int fnCount = buffer.read(NetworkBuffer.INT);
-            for (int fnId = 0; fnId < fnCount; fnId++) {
-                String name = buffer.read(NetworkBuffer.STRING);
+        for (CodeMigration m : CodeMigration.values()) buffer = m.apply(version, length, buffer);
 
-                List<NodeOutput> inputs = new ArrayList<>();
-                int count = buffer.read(NetworkBuffer.INT);
-                for (int each = 0; each < count; each++) {
-                    String ioName = buffer.read(NetworkBuffer.STRING);
-                    Value type = AllValues.readValue(buffer);
-                    inputs.add(new NodeOutput(ioName, type));
-                }
+        structs.clear();
+        int stCount = buffer.read(NetworkBuffer.INT);
+        for (int stId = 0; stId < stCount; stId++) {
+            String name = buffer.read(NetworkBuffer.STRING);
+            byte len = buffer.read(NetworkBuffer.BYTE);
+            ArrayList<StructValue.Field> fields = new ArrayList<>(len);
+            for (byte i = 0; i < len; i++) fields.add(new StructValue.Field(buffer.read(NetworkBuffer.STRING), AllValues.readValue(buffer, List.of())));
+            StructValue type = new StructValue(name, fields);
+            structs.add(new StructDefinition(type));
+        }
 
-                List<NodeInput> outputs = new ArrayList<>();
-                count = buffer.read(NetworkBuffer.INT);
-                for (int each = 0; each < count; each++) {
-                    String ioName = buffer.read(NetworkBuffer.STRING);
-                    Value type = AllValues.readValue(buffer);
-                    outputs.add(new NodeInput(ioName, type));
-                }
+        functions.clear();
+        int fnCount = buffer.read(NetworkBuffer.INT);
+        for (int fnId = 0; fnId < fnCount; fnId++) {
+            String name = buffer.read(NetworkBuffer.STRING);
 
-                functions.add(new FunctionDefinition(name, inputs, outputs));
+            int count = buffer.read(NetworkBuffer.INT);
+            List<NodeOutput> inputs = new ArrayList<>(count);
+            for (int each = 0; each < count; each++) {
+                String ioName = buffer.read(NetworkBuffer.STRING);
+                Value type = AllValues.readValue(buffer, structs);
+                inputs.add(new NodeOutput(ioName, type));
             }
+
+            count = buffer.read(NetworkBuffer.INT);
+            List<NodeInput> outputs = new ArrayList<>(count);
+            for (int each = 0; each < count; each++) {
+                String ioName = buffer.read(NetworkBuffer.STRING);
+                Value type = AllValues.readValue(buffer, structs);
+                outputs.add(new NodeInput(ioName, type));
+            }
+
+            functions.add(new FunctionDefinition(name, inputs, outputs));
         }
 
         List<Runnable> connectNodes = new ArrayList<>();
@@ -324,7 +338,7 @@ public class CodeEditor {
                 continue;
             }
             Node node = supplier.get();
-            node = node.readData(buffer);
+            node = node.readData(buffer, structs);
             double x = buffer.read(NetworkBuffer.DOUBLE);
             double y = buffer.read(NetworkBuffer.DOUBLE);
 

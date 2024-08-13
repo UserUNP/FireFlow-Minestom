@@ -27,7 +27,7 @@ public final class StructDefinition {
 
     public StructDefinition(StructValue type) {
         this.type = type;
-        this.stName = type.getBaseName();
+        this.stName = type.getBaseName().replace(" Struct", "");
         ArrayList<NodeOutput> fnInputs = new ArrayList<>(type.fields.size() + 1);
         fnInputs.add(new NodeOutput("On Creation", SignalValue.INSTANCE));
         for (int i = 0; i < type.fields.size(); i++) {
@@ -97,7 +97,7 @@ public final class StructDefinition {
             NodeInput createOut = new NodeInput(stName, type);
             createOut.connectValue(struct);
 
-            funcCall = new FunctionDefinition(stName, createInputs, List.of(createOut)).createCall();
+            funcCall = new FunctionDefinition("Create " + stName, createInputs, List.of(createOut)).createCall();
             inputs = funcCall.inputs;
             outputs = funcCall.outputs;
         }

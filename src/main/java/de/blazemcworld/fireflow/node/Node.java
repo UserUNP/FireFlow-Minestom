@@ -60,11 +60,11 @@ public abstract class Node {
         }
     }
 
-    public Node readData(NetworkBuffer buffer) {
+    public Node readData(NetworkBuffer buffer, List<StructDefinition> structs) {
         int genericsSize = buffer.read(NetworkBuffer.INT);
         List<Value> generics = new ArrayList<>();
         for (int i = 0; i < genericsSize; i++) {
-            generics.add(AllValues.readValue(buffer));
+            generics.add(AllValues.readValue(buffer, structs));
         }
 
         Node target = fromGenerics(generics);

@@ -20,14 +20,14 @@ public class StructValue implements Value {
     public final ArrayList<Field> fields;
     private final String name;
     public StructValue(String name, ArrayList<Field> fields) {
-        if (fields.size() >= Byte.MAX_VALUE) throw new RuntimeException("Too many types for struct + " + name +"!");
+        if (fields.size() >= Byte.MAX_VALUE) throw new RuntimeException("Too many fields for struct " + name +"!");
         this.name = name;
         this.fields = fields;
     }
 
     @Override
     public String getBaseName() {
-        return name;
+        return name + " Struct";
     }
 
     @Override

@@ -189,12 +189,15 @@ public class NodeWidget implements Widget {
                 player.sendMessage(Messages.error("Can't modify used structs!"));
                 return;
             }
+            if (prev.type.fields.size() >= Byte.MAX_VALUE) {
+                player.sendMessage(Messages.error("Too many fields!"));
+                return;
+            }
             GenericSelectorWidget.choose(cursor.add(2, 0, 0), editor, List.of(
-                    new Value.GenericParam("Field Type", AllValues.dataOnly(editor.structs))
+                    new Value.GenericParam("Field Type", AllValues.dataOnly)
             ), chosen -> {
                 if (editor.structInUse(prev)) return;
                 Value type = chosen.getFirst();
-
                 ArrayList<StructValue.Field> updatedFields = new ArrayList<>(prev.type.fields.size() + 1);
                 updatedFields.addAll(prev.type.fields);
                 updatedFields.add(new StructValue.Field("Unnamed"+updatedFields.size(), type));

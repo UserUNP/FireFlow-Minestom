@@ -38,6 +38,7 @@ public class AllValues {
     }
 
     public static Value get(String name) {
+        //TODO: resolve struct name & struct dependency on others & look out for circular dependencies
         for (Value value : any) {
             if (value.getBaseName().equals(name)) return value;
         }
@@ -53,17 +54,22 @@ public class AllValues {
         }
     }
 
-    public static Value readValue(NetworkBuffer buffer) {
+    public static Value readValue(NetworkBuffer buffer, List<StructDefinition> structs) {
         String name = buffer.read(NetworkBuffer.STRING);
         List<Value> generics = new ArrayList<>();
         int genericsSize = buffer.read(NetworkBuffer.INT);
         for (int i = 0; i < genericsSize; i++) {
-            generics.add(readValue(buffer));
+            generics.add(readValue(buffer, structs));
         }
-        Value norm = AllValues.get(name);
+        Value norm = null;
+        if (!name.endsWith(" Struct")) norm = AllValues.get(name);
+        else for (StructDefinition st : structs) {
+            if (st.type.getBaseName().equals(name)) {
+                norm = st.type;
+                break;
+            }
+        }
         if (norm == null) return null;
         return norm.fromGenerics(generics);
     }
-
-
 }
