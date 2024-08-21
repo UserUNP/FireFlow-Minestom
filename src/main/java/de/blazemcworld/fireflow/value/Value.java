@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.network.NetworkBuffer;
@@ -14,7 +13,7 @@ public interface Value {
     String getBaseName();
     TextColor getColor();
     Type getType();
-    InsnList compile(NodeCompiler ctx, Object inset);
+    InsnList compile(Object inset);
     Instruction cast(Instruction value);
     Instruction wrapPrimitive(Instruction value);
     Object prepareInset(String message);

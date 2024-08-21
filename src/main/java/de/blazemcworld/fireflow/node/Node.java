@@ -7,6 +7,10 @@ import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import de.blazemcworld.fireflow.node.annotation.*;
+import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeMultiInput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
@@ -24,12 +28,18 @@ import java.util.Map;
 
 public abstract class Node {
 
-    public List<NodeInput> inputs = new ArrayList<>();
-    public List<NodeOutput> outputs = new ArrayList<>();
+    public List<NodeIO.In> inputs = new ArrayList<>();
+    public List<NodeIO.Out> outputs = new ArrayList<>();
     public final String name;
 
     public Node(String name) {
         this.name = name;
+    }
+
+    protected NodeMultiInput multiInput(String name, Value value) {
+        NodeMultiInput input = new NodeMultiInput(name, value);
+        inputs.add(input);
+        return input;
     }
 
     protected NodeInput input(String name, Value value) {
@@ -64,15 +74,7 @@ public abstract class Node {
             AllValues.writeValue(buffer, generic);
         }
 
-        List<NodeInput> insetted = new ArrayList<>();
-        for (NodeInput input : inputs) {
-            if (input.getInset() != null) insetted.add(input);
-        }
-        buffer.write(NetworkBuffer.INT, insetted.size());
-        for (NodeInput input : insetted) {
-            buffer.write(NetworkBuffer.INT, inputs.indexOf(input));
-            input.type.writeInset(buffer, input.getInset());
-        }
+        //TODO: inset values
     }
 
     public Node readData(NetworkBuffer buffer) {
@@ -81,14 +83,9 @@ public abstract class Node {
         for (int i = 0; i < genericsSize; i++) {
             generics.add(AllValues.readValue(buffer));
         }
-
         Node target = fromGenerics(generics);
 
-        int size = buffer.read(NetworkBuffer.INT);
-        for (int i = 0; i < size; i++) {
-            int index = buffer.read(NetworkBuffer.INT);
-            target.inputs.get(index).inset(target.inputs.get(index).type.readInset(buffer));
-        }
+        //TODO: inset values
 
         return target;
     }
@@ -114,8 +111,8 @@ public abstract class Node {
             for (Method m : clazz.getDeclaredMethods()) {
                 if (m.isAnnotationPresent(FlowSignalInput.class)) {
                     String name = m.getAnnotation(FlowSignalInput.class).value();
-                    for (NodeInput input : inputs) {
-                        if (!input.getName().equals(name) || input.type != SignalValue.INSTANCE) continue;
+                    for (NodeIO.In input : inputs) {
+                        if (!input.getName().equals(name) || input.getType() != SignalValue.INSTANCE) continue;
 
                         input.setInstruction(convertJava(classNode, clazz, m));
                     }
@@ -123,14 +120,14 @@ public abstract class Node {
                 }
                 if (m.isAnnotationPresent(FlowValueOutput.class)) {
                     String name = m.getAnnotation(FlowValueOutput.class).value();
-                    for (NodeOutput output : outputs) {
-                        if (!output.getName().equals(name) || output.type == SignalValue.INSTANCE) continue;
+                    for (NodeIO.Out output : outputs) {
+                        if (!output.getName().equals(name) || output.getType() == SignalValue.INSTANCE) continue;
 
                         Instruction insn = convertJava(classNode, clazz, m);
                         if (m.getReturnType() == Object.class) {
-                            insn = output.type.cast(insn);
+                            insn = output.getType().cast(insn);
                         }
-                        output.setInstruction(new MultiInstruction(output.type.getType(), insn));
+                        output.setInstruction(new MultiInstruction(output.getType().getType(), insn));
                     }
                 }
             }
@@ -156,7 +153,7 @@ public abstract class Node {
                         if (!other.getName().equals(invoke.name) || !Type.getType(other).getDescriptor().equals(invoke.desc)) continue;
                         if (other.isAnnotationPresent(FlowSignalOutput.class)) {
                             String outputName = other.getAnnotation(FlowSignalOutput.class).value();
-                            for (NodeOutput output : outputs) {
+                            for (NodeIO.Out output : outputs) {
                                 if (!output.getName().equals(outputName)) continue;
                                 all.add(output);
                                 continue update;
@@ -164,10 +161,10 @@ public abstract class Node {
                         }
                         if (other.isAnnotationPresent(FlowValueInput.class)) {
                             String inputName = other.getAnnotation(FlowValueInput.class).value();
-                            for (NodeInput input : inputs) {
+                            for (NodeIO.In input : inputs) {
                                 if (!input.getName().equals(inputName)) continue;
                                 if (other.getReturnType() == Object.class) {
-                                    all.add(input.type.wrapPrimitive(input));
+                                    all.add(input.getType().wrapPrimitive(input));
                                 } else {
                                     all.add(input);
                                 }

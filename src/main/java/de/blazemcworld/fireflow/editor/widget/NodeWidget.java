@@ -6,10 +6,10 @@ import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
 import de.blazemcworld.fireflow.editor.action.CreateWireAction;
 import de.blazemcworld.fireflow.editor.action.MoveNodeAction;
-import de.blazemcworld.fireflow.node.ExtractionNode;
-import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeInput;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.*;
+import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.util.TextWidth;
 import de.blazemcworld.fireflow.value.AllValues;
@@ -43,7 +43,7 @@ public class NodeWidget implements Widget {
 
     public void update(boolean init) {
         double inputWidth = 0.1;
-        for (NodeInput input : node.inputs) {
+        for (NodeIO.In input : node.inputs) {
             String text;
             if (input.getInset() != null) {
                 text = "⏹ " + input.type.formatInset(input.getInset());
@@ -54,7 +54,7 @@ public class NodeWidget implements Widget {
             inputWidth = Math.max(inputWidth, TextWidth.calculate(text, false) / 40);
         }
         double outputWidth = 0.1;
-        for (NodeOutput output : node.outputs) {
+        for (NodeIO.Out output : node.outputs) {
             outputWidth = Math.max(outputWidth, TextWidth.calculate(output.getName() + " ○", false) / 40);
         }
         double titleWidth = TextWidth.calculate(node.name, false) / 40;
@@ -91,9 +91,9 @@ public class NodeWidget implements Widget {
         Vec pos = origin.add(inputWidth + 0.1, 0, 0);
         if (node instanceof ExtractionNode) pos = origin.add(titleWidth * 0.5 + 0.2, 0.3, 0);
         int index = 0;
-        for (NodeInput input : node.inputs) {
+        for (NodeIO.In input : node.inputs) {
             if (init) {
-                Component text = Component.text("○ " + input.getName()).color(input.type.getColor());
+                Component text = Component.text("○ " + input.getName()).color(input.getType().getColor());
                 if (input.hasDefault()) text = text.append(Component.text("*").color(NamedTextColor.GRAY));
                 NodeInputWidget btn = new NodeInputWidget(pos, inst, text, input, this);
                 inputs.add(btn);
@@ -116,9 +116,9 @@ public class NodeWidget implements Widget {
         index = 0;
         pos = origin.add(-outputWidth - 0.1, 0, 0);
         if (node instanceof ExtractionNode) pos = origin.add(-titleWidth * 0.5 - 0.2, 0.3, 0);
-        for (NodeOutput output : node.outputs) {
+        for (NodeIO.Out output : node.outputs) {
             if (init) {
-                NodeOutputWidget btn = new NodeOutputWidget(pos.add(TextWidth.calculate(output.getName() + " ○", false) / 40, 0, 0), inst, Component.text(output.getName() + " ○").color(output.type.getColor()), output, this);
+                NodeOutputWidget btn = new NodeOutputWidget(pos.add(TextWidth.calculate(output.getName() + " ○", false) / 40, 0, 0), inst, Component.text(output.getName() + " ○").color(output.getType().getColor()), output, this);
                 outputs.add(btn);
                 btn.leftClick = (player, editor) -> tryRemove(editor);
                 btn.rightClick = (player, editor) -> editor.setAction(player, new CreateWireAction(output, btn, player, editor));

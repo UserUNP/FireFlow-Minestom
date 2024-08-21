@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
@@ -32,7 +31,7 @@ public class TextValue implements Value {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx, Object inset) {
+    public InsnList compile(Object inset) {
         InsnList out = new InsnList();
         out.add(new LdcInsnNode(String.valueOf(inset)));
         return out;

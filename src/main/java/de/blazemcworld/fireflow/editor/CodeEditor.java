@@ -9,6 +9,8 @@ import de.blazemcworld.fireflow.editor.widget.NodeWidget;
 import de.blazemcworld.fireflow.editor.widget.WireWidget;
 import de.blazemcworld.fireflow.editor.action.DeleteSelectionAction;
 import de.blazemcworld.fireflow.node.*;
+import de.blazemcworld.fireflow.node.io.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.space.Space;
 import de.blazemcworld.fireflow.util.PlayerExitInstanceEvent;
 import de.blazemcworld.fireflow.value.AllValues;
@@ -338,7 +340,7 @@ public class CodeEditor {
                             widget.inputs.get(currentInputId).addWire(new WireWidget(
                                     inst, widget.inputs.get(currentInputId), out.outputs.get(output), relays
                             ));
-                            if (widget.node.inputs.get(currentInputId).type == SignalValue.INSTANCE) {
+                            if (widget.node.inputs.get(currentInputId).getType() == SignalValue.INSTANCE) {
                                 out.node.outputs.get(output).connectSignal(widget.node.inputs.get(currentInputId));
                             } else {
                                 widget.node.inputs.get(currentInputId).connectValue(out.node.outputs.get(output));

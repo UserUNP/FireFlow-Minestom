@@ -5,8 +5,9 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeInput;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.value.SignalValue;
 import it.unimi.dsi.fastutil.Pair;
 import org.objectweb.asm.Opcodes;
@@ -40,7 +41,7 @@ public final class FunctionDefinition {
                 public void prepare(NodeCompiler ctx) {
                     ctx.prepare(peek);
                     for (Call c : calls.keySet()) {
-                        for (NodeInput other : c.inputs) {
+                        for (NodeIO.In other : c.inputs) {
                             if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
                                 continue;
                             ctx.prepare(other);
@@ -55,9 +56,8 @@ public final class FunctionDefinition {
 
                     out.add(ctx.compile(peek, usedVars));
                     for (Map.Entry<Call, Integer> e : calls.entrySet()) {
-                        for (NodeInput other : e.getKey().inputs) {
-                            if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
-                                continue;
+                        for (NodeIO.In other : e.getKey().inputs) {
+                            if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType())) continue;
                             out.add(new InsnNode(Opcodes.DUP));
                             out.add(new LdcInsnNode(e.getValue()));
                             LabelNode next = new LabelNode();
@@ -70,7 +70,7 @@ public final class FunctionDefinition {
                     }
 
                     out.add(new InsnNode(Opcodes.POP));
-                    out.add(each.getType().compile(ctx, null));
+                    out.add(each.getType().compile(null));
                     out.add(end);
                     return out;
                 }
@@ -91,7 +91,7 @@ public final class FunctionDefinition {
                 public void prepare(NodeCompiler ctx) {
                     ctx.prepare(peek);
                     for (Call c : calls.keySet()) {
-                        for (NodeOutput other : c.outputs) {
+                        for (NodeIO.Out other : c.outputs) {
                             if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
                                 continue;
                             ctx.prepare(other);
@@ -106,7 +106,7 @@ public final class FunctionDefinition {
 
                     out.add(ctx.compile(peek, usedVars));
                     for (Map.Entry<Call, Integer> e : calls.entrySet()) {
-                        for (NodeOutput other : e.getKey().outputs) {
+                        for (NodeIO.Out other : e.getKey().outputs) {
                             if (!other.getName().equals(each.getName()) || !other.getType().equals(each.getType()))
                                 continue;
                             out.add(new InsnNode(Opcodes.DUP));

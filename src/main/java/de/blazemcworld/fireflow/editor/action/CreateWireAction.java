@@ -6,10 +6,8 @@ import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.EditorAction;
 import de.blazemcworld.fireflow.editor.Widget;
 import de.blazemcworld.fireflow.editor.widget.*;
-import de.blazemcworld.fireflow.node.ExtractionNode;
-import de.blazemcworld.fireflow.node.NodeCategory;
-import de.blazemcworld.fireflow.node.NodeInput;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.*;
+import de.blazemcworld.fireflow.node.io.NodeIO;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
@@ -20,14 +18,14 @@ import java.util.Stack;
 
 public class CreateWireAction implements EditorAction {
 
-    private NodeInput nodeInput = null;
-    private NodeOutput nodeOutput = null;
+    private NodeIO.In nodeInput = null;
+    private NodeIO.Out nodeOutput = null;
     private final ButtonWidget origin;
     private final Player player;
     private final CodeEditor editor;
     private final Stack<LineWidget> lines = new Stack<>();
 
-    public CreateWireAction(NodeInput input, ButtonWidget btn, Player player, CodeEditor editor) {
+    public CreateWireAction(NodeIO.In input, ButtonWidget btn, Player player, CodeEditor editor) {
         this.nodeInput = input;
         this.origin = btn;
         this.player = player;
@@ -36,7 +34,7 @@ public class CreateWireAction implements EditorAction {
         lines.getFirst().color = input.getType().getColor();
     }
 
-    public CreateWireAction(NodeOutput output, ButtonWidget btn, Player player, CodeEditor editor) {
+    public CreateWireAction(NodeIO.Out output, ButtonWidget btn, Player player, CodeEditor editor) {
         this.nodeOutput = output;
         this.origin = btn;
         this.player = player;
@@ -49,9 +47,9 @@ public class CreateWireAction implements EditorAction {
     public void rightClick(Vec cursor) {
         Widget selected = editor.getWidget(player, cursor);
         if (selected instanceof NodeInputWidget other && nodeOutput != null) {
-            if (other.input.type != nodeOutput.type) return;
+            if (other.input.getType() != nodeOutput.getType()) return;
 
-            if (nodeOutput.type == SignalValue.INSTANCE) {
+            if (nodeOutput.getType() == SignalValue.INSTANCE) {
                 ((NodeOutputWidget) origin).disconnect();
                 nodeOutput.connectSignal(other.input);
             } else {
@@ -68,9 +66,9 @@ public class CreateWireAction implements EditorAction {
             return;
         }
         if (selected instanceof NodeOutputWidget other && nodeInput != null) {
-            if (other.output.type != nodeInput.type) return;
+            if (other.output.type != nodeInput.getType()) return;
 
-            if (nodeInput.type == SignalValue.INSTANCE) {
+            if (nodeInput.getType() == SignalValue.INSTANCE) {
                 other.disconnect();
                 other.output.connectSignal(nodeInput);
             } else {
@@ -105,8 +103,8 @@ public class CreateWireAction implements EditorAction {
 
     @Override
     public void swapItem(Vec cursor) {
-        if (nodeOutput == null || nodeOutput.type == SignalValue.INSTANCE) return;
-        NodeCategory category = NodeCategory.EXTRACTIONS.get(nodeOutput.type);
+        if (nodeOutput == null || nodeOutput.getType() == SignalValue.INSTANCE) return;
+        NodeCategory category = NodeCategory.EXTRACTIONS.get(nodeOutput.getType());
         if (category == null) return;
 
         NodeCategoryWidget selector = new NodeCategoryWidget(cursor, editor.inst, category);

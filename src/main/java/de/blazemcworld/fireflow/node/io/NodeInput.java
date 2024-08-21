@@ -1,4 +1,4 @@
-package de.blazemcworld.fireflow.node;
+package de.blazemcworld.fireflow.node.io;
 
 import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
@@ -7,11 +7,10 @@ import de.blazemcworld.fireflow.value.Value;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnList;
 
-public class NodeInput implements Instruction {
+public class NodeInput implements NodeIO.In {
     private final String name;
     public final Value type;
-    private NodeOutput source;
-    private Object inset;
+    private NodeIO.Out source;
     private Object defaultValue;
     private Instruction instruction;
 
@@ -28,26 +27,38 @@ public class NodeInput implements Instruction {
         return type;
     }
 
-    public void connectValue(NodeOutput source) {
+    @Override
+    public boolean hasInset() {
+        return source.hasInset();
+    }
+
+    @Override
+    public NodeInputType inputType() {
+        return NodeInputType.SINGULAR;
+    }
+
+    public void connectValue(NodeIO.Out source) {
         if (source.getType() != type) throw new IllegalStateException("Attempted to connect values of incompatible types!");
         this.source = source;
-        this.inset = null;
     }
 
     public void inset(Object value) {
-        source = null;
-        this.inset = value;
+        if (value == null) {
+            source = null;
+            return;
+        }
+        source = new NodeOutput("("+type.getFullName()+")", type);
+        source.inset(value);
     }
 
     public Object getInset() {
-        return inset;
+        return source.getInset();
     }
 
     public void setInstruction(Instruction instructions) {
         if (type != SignalValue.INSTANCE) throw new IllegalStateException("Can only set instruction on signal inputs!");
         this.instruction = instructions;
     }
-
 
     @Override
     public void prepare(NodeCompiler ctx) {
@@ -68,10 +79,7 @@ public class NodeInput implements Instruction {
         if (source != null) {
             return ctx.compile(source, usedVars);
         }
-        if (inset != null) {
-            return type.compile(ctx, inset);
-        }
-        return type.compile(ctx, defaultValue);
+        return type.compile(defaultValue);
     }
 
     @Override

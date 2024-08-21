@@ -4,7 +4,8 @@ import com.google.gson.JsonParser;
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.Widget;
-import de.blazemcworld.fireflow.node.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeInput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.kyori.adventure.text.Component;
@@ -19,11 +20,11 @@ import java.util.List;
 
 public class NodeInputWidget extends ButtonWidget {
 
-    public final NodeInput input;
+    public final NodeIO.In input;
     public final NodeWidget parent;
     public List<WireWidget> wires = new ArrayList<>();
 
-    public NodeInputWidget(Vec position, InstanceContainer inst, Component text, NodeInput input, NodeWidget parent) {
+    public NodeInputWidget(Vec position, InstanceContainer inst, Component text, NodeIO.In input, NodeWidget parent) {
         super(position, inst, text);
         this.input = input;
         this.parent = parent;
@@ -50,9 +51,9 @@ public class NodeInputWidget extends ButtonWidget {
         if (input != null) {
             Component text;
             if (input.getInset() != null) {
-                text = Component.text("⏹ " + input.type.formatInset(input.getInset())).color(input.type.getColor());
+                text = Component.text("⏹ " + input.getType().formatInset(input.getInset())).color(input.getType().getColor());
             } else {
-                text = Component.text("○ " + input.getName()).color(input.type.getColor());
+                text = Component.text("○ " + input.getName()).color(input.getType().getColor());
             }
             if (input.hasDefault()) text = text.append(Component.text("*").color(NamedTextColor.GRAY));
             text(text);
@@ -75,7 +76,7 @@ public class NodeInputWidget extends ButtonWidget {
             List<NodeInput> updated = new ArrayList<>(prev.fnOutputs);
             int id = updated.indexOf(input);
             if (id == -1) return;
-            updated.set(id, new NodeInput(event.getMessage(), input.type));
+            updated.set(id, new NodeInput(event.getMessage(), input.getType()));
             FunctionDefinition next = new FunctionDefinition(prev.fnName, prev.fnInputs, updated);
             editor.redefine(prev, next);
             return;
@@ -86,7 +87,7 @@ public class NodeInputWidget extends ButtonWidget {
         } catch (Exception ignored) {
             str = event.getMessage();
         }
-        Object inset = input.type.prepareInset(str);
+        Object inset = input.getType().prepareInset(str);
         if (inset != null) {
             input.inset(inset);
             parent.update(false);
@@ -116,9 +117,9 @@ public class NodeInputWidget extends ButtonWidget {
         for (WireWidget wire : wires) {
             wire.remove();
             wire.output.connected.remove(this);
-            if (input.type == SignalValue.INSTANCE) wire.output.output.connectSignal(null);
+            if (input.getType() == SignalValue.INSTANCE) wire.output.output.connectSignal(null);
         }
-        if (input.type != SignalValue.INSTANCE) input.inset(null);
+        if (input.getType() != SignalValue.INSTANCE) input.inset(null);
         wires.clear();
     }
 

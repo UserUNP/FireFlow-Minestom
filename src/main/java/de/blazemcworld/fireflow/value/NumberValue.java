@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
@@ -32,7 +31,7 @@ public class NumberValue implements Value {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx, Object inset) {
+    public InsnList compile(Object inset) {
         if (!(inset instanceof Double)) {
             if (inset instanceof Number n) {
                 inset = n.doubleValue();

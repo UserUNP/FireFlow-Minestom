@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
@@ -35,7 +34,7 @@ public class VectorValue implements Value {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx, Object inset) {
+    public InsnList compile(Object inset) {
         InsnList out = new InsnList();
         out.add(new FieldInsnNode(Opcodes.GETSTATIC, "net/minestom/server/coordinate/Vec", "ZERO", "Lnet/minestom/server/coordinate/Vec;"));
         return out;
@@ -74,12 +73,12 @@ public class VectorValue implements Value {
 
     @Override
     public void writeInset(NetworkBuffer buffer, Object inset) {
-        throw new IllegalStateException("Signal inputs can not be inset!");
+        throw new IllegalStateException("Vector inputs can not be inset!");
     }
 
     @Override
     public Object readInset(NetworkBuffer buffer) {
-        throw new IllegalStateException("Signal inputs can not be inset!");
+        throw new IllegalStateException("Vector inputs can not be inset!");
     }
 
 }

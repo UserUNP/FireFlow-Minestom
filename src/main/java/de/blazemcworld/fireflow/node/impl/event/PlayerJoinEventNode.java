@@ -3,7 +3,7 @@ package de.blazemcworld.fireflow.node.impl.event;
 import de.blazemcworld.fireflow.compiler.CompiledNode;
 import de.blazemcworld.fireflow.evaluation.CodeEvaluator;
 import de.blazemcworld.fireflow.node.Node;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.node.annotation.FlowContext;
 import de.blazemcworld.fireflow.node.annotation.FlowValueOutput;
 import de.blazemcworld.fireflow.value.PlayerValue;

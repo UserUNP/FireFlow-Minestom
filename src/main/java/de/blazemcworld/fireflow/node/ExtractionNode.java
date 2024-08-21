@@ -1,5 +1,7 @@
 package de.blazemcworld.fireflow.node;
 
+import de.blazemcworld.fireflow.node.io.NodeInput;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.value.Value;
 
 public class ExtractionNode extends Node {

@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -28,7 +27,7 @@ public class SignalValue implements Value {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx, Object inset) {
+    public InsnList compile(Object inset) {
         throw new IllegalStateException("Signal inputs can not be used as instructions!");
     }
 

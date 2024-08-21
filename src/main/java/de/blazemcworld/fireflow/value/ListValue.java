@@ -1,6 +1,5 @@
 package de.blazemcworld.fireflow.value;
 
-import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.MultiInstruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
@@ -42,7 +41,7 @@ public class ListValue implements Value {
     }
 
     @Override
-    public InsnList compile(NodeCompiler ctx, Object inset) {
+    public InsnList compile(Object inset) {
         if (inset != null) throw new IllegalStateException("List values can not be inset!");
         InsnList out = new InsnList();
         out.add(new TypeInsnNode(Opcodes.NEW, "java/util/ArrayList"));

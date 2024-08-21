@@ -2,7 +2,8 @@ package de.blazemcworld.fireflow.editor.widget;
 
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
 import de.blazemcworld.fireflow.editor.CodeEditor;
-import de.blazemcworld.fireflow.node.NodeOutput;
+import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.util.Messages;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.kyori.adventure.text.Component;
@@ -18,11 +19,11 @@ import java.util.Set;
 
 public class NodeOutputWidget extends ButtonWidget {
 
-    public final NodeOutput output;
+    public final NodeIO.Out output;
     public final NodeWidget parent;
     public Set<NodeInputWidget> connected = new HashSet<>();
 
-    public NodeOutputWidget(Vec position, InstanceContainer inst, Component text, NodeOutput output, NodeWidget parent) {
+    public NodeOutputWidget(Vec position, InstanceContainer inst, Component text, NodeIO.Out output, NodeWidget parent) {
         super(position, inst, text);
         this.output = output;
         this.parent = parent;
@@ -32,13 +33,13 @@ public class NodeOutputWidget extends ButtonWidget {
         for (NodeInputWidget each : connected) {
             each.wires.removeIf(widget -> {
                 if (widget.output != this) return false;
-                if (output.type != SignalValue.INSTANCE) widget.input.input.inset(null);
+                if (output.getType() != SignalValue.INSTANCE) widget.input.input.inset(null);
                 widget.remove();
                 return true;
             });
         }
         connected.clear();
-        if (output.type == SignalValue.INSTANCE) output.connectSignal(null);
+        if (output.getType() == SignalValue.INSTANCE) output.connectSignal(null);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class NodeOutputWidget extends ButtonWidget {
             List<NodeOutput> updated = new ArrayList<>(prev.fnInputs);
             int id = updated.indexOf(output);
             if (id == -1) return;
-            updated.set(id, new NodeOutput(event.getMessage(), output.type));
+            updated.set(id, new NodeOutput(event.getMessage(), output.getType()));
             FunctionDefinition next = new FunctionDefinition(prev.fnName, updated, prev.fnOutputs);
             editor.redefine(prev, next);
         }
