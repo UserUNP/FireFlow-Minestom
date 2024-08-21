@@ -48,10 +48,7 @@ public class FireFlow {
         cmds.register(new LobbyCommand());
         cmds.register(new ReloadCommand());
         cmds.register(new JoinCommand());
-        cmds.register(new SetTitleCommand());
-        cmds.register(new SetIconCommand());
-        cmds.register(new ContributorCommand());
-        cmds.register(new VariablesCommand());
+        cmds.register(new SpaceCommand());
 
         if (Config.store.network().enabled()) {
             ApiServer.init();

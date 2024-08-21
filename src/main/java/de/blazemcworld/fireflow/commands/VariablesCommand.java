@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class VariablesCommand extends Command {
     public VariablesCommand() {
-        super("variables", "vars");
+        super("list");
 
         setDefaultExecutor((sender, ctx) -> showVariables(sender, ""));
         addSyntax((sender, ctx) -> {

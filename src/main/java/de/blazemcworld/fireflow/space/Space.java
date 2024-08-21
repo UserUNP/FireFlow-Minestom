@@ -14,6 +14,7 @@ import net.minestom.server.coordinate.Vec;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.event.trait.InstanceEvent;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
@@ -273,6 +274,16 @@ public class Space {
         play.saveChunksToStorage();
         saveVariables();
         editor.save();
+        unloadChunks(play);
+        unloadChunks(code);
+    }
+
+    private void unloadChunks(InstanceContainer inst) {
+        Set<Chunk> unload = new HashSet<>();
+        for (Chunk c : inst.getChunks()) {
+            if (c.getViewers().isEmpty()) unload.add(c);
+        }
+        for (Chunk c : unload) inst.unloadChunk(c);
     }
 
     public void reload() {

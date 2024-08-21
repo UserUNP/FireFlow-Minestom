@@ -71,6 +71,11 @@ public class ConditionValue implements Value {
     }
 
     @Override
+    public boolean canInset() {
+        return true;
+    }
+
+    @Override
     public void writeInset(NetworkBuffer buffer, Object inset) {
         buffer.write(NetworkBuffer.BOOLEAN, (Boolean) inset);
     }

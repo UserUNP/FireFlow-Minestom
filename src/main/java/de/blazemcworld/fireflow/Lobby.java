@@ -25,17 +25,17 @@ import net.minestom.server.event.trait.BlockEvent;
 import net.minestom.server.event.trait.CancellableEvent;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.event.trait.PlayerInstanceEvent;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.inventory.PlayerInventory;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
+import net.minestom.server.timer.TaskSchedule;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Lobby {
 
@@ -141,6 +141,15 @@ public class Lobby {
         events.addListener(ItemDropEvent.class, event -> event.setCancelled(true));
         events.addListener(InventoryPreClickEvent.class, event -> event.setCancelled(true));
         events.addListener(PlayerSwapItemEvent.class, event -> event.setCancelled(true));
+
+        MinecraftServer.getSchedulerManager().submitTask(() -> {
+            Set<Chunk> unload = new HashSet<>();
+            for (Chunk c : instance.getChunks()) {
+                if (c.getViewers().isEmpty()) unload.add(c);
+            }
+            for (Chunk c : unload) instance.unloadChunk(c);
+            return TaskSchedule.minutes(1);
+        });
     }
 
     private static void rightClick(PlayerInstanceEvent event) {

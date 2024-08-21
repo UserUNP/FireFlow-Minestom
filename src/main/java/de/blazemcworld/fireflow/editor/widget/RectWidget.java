@@ -2,6 +2,7 @@ package de.blazemcworld.fireflow.editor.widget;
 
 import de.blazemcworld.fireflow.editor.Bounds;
 import de.blazemcworld.fireflow.editor.Widget;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.InstanceContainer;
@@ -18,6 +19,14 @@ public class RectWidget implements Widget  {
         b = new LineWidget(inst);
         c = new LineWidget(inst);
         d = new LineWidget(inst);
+        update(area);
+    }
+
+    public RectWidget(InstanceContainer inst, Bounds area, NamedTextColor color) {
+        a = new LineWidget(inst, color);
+        b = new LineWidget(inst, color);
+        c = new LineWidget(inst, color);
+        d = new LineWidget(inst, color);
         update(area);
     }
 

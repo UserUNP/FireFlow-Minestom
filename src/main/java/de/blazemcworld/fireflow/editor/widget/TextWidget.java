@@ -52,7 +52,7 @@ public class TextWidget implements Widget {
         return new Bounds(position, Vec.fromPoint(position).add(-width * 0.5, 0.25, 0));
     }
 
-    public void text(Component text) {
-        meta.setText(text);
-    }
+    public void text(Component text) { meta.setText(text); }
+
+    public Component text() { return meta.getText(); }
 }

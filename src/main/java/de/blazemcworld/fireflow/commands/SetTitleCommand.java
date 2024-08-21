@@ -10,7 +10,7 @@ import net.minestom.server.entity.Player;
 public class SetTitleCommand extends Command {
 
     public SetTitleCommand() {
-        super("settitle");
+        super("title");
         addSyntax((sender, ctx) -> {
             if (sender instanceof Player player) {
                 Space space = SpaceManager.getSpace(player);

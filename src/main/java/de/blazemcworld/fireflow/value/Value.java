@@ -17,6 +17,9 @@ public interface Value {
     Instruction cast(Instruction value);
     Instruction wrapPrimitive(Instruction value);
     Object prepareInset(String message);
+    default boolean canInset() {
+        return false;
+    }
     void writeInset(NetworkBuffer buffer, Object inset);
     Object readInset(NetworkBuffer buffer);
 

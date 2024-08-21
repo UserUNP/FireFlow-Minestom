@@ -29,6 +29,17 @@ public class LineWidget implements Widget {
         meta.setHasNoGravity(true);
     }
 
+    public LineWidget(InstanceContainer inst, NamedTextColor color) {
+        this.inst = inst;
+        this.color = color;
+        meta.setText(Component.text("-").color(color));
+        meta.setBackgroundColor(0);
+        meta.setLineWidth(Integer.MAX_VALUE);
+        meta.setTransformationInterpolationDuration(1);
+        meta.setPosRotInterpolationDuration(1);
+        meta.setHasNoGravity(true);
+    }
+
     public void update() {
         double dist = from.distance(to);
         meta.setText(Component.text("-").color(color));

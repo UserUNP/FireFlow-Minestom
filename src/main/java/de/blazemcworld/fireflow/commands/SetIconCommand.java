@@ -11,7 +11,7 @@ import net.minestom.server.item.ItemStack;
 public class SetIconCommand extends Command {
 
     public SetIconCommand() {
-        super("seticon");
+        super("icon");
         addSyntax((sender, ctx) -> {
             if (sender instanceof Player player) {
                 Space space = SpaceManager.getSpace(player);

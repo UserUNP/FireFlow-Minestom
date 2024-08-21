@@ -2,20 +2,19 @@ package de.blazemcworld.fireflow.editor;
 
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.compiler.FunctionDefinition;
-import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
-import de.blazemcworld.fireflow.editor.widget.NodeCategoryWidget;
-import de.blazemcworld.fireflow.editor.widget.NodeInputWidget;
-import de.blazemcworld.fireflow.editor.widget.NodeWidget;
-import de.blazemcworld.fireflow.editor.widget.WireWidget;
 import de.blazemcworld.fireflow.editor.action.DeleteSelectionAction;
+import de.blazemcworld.fireflow.editor.action.MoveSelectionAction;
+import de.blazemcworld.fireflow.editor.widget.*;
 import de.blazemcworld.fireflow.node.*;
 import de.blazemcworld.fireflow.node.io.NodeInput;
 import de.blazemcworld.fireflow.node.io.NodeOutput;
 import de.blazemcworld.fireflow.space.Space;
 import de.blazemcworld.fireflow.util.PlayerExitInstanceEvent;
+import de.blazemcworld.fireflow.util.TextWidth;
 import de.blazemcworld.fireflow.value.AllValues;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Entity;
@@ -46,6 +45,7 @@ public class CodeEditor {
     private final HashMap<Player, EditorAction> actions = new HashMap<>();
     private final Path filePath;
     public final List<FunctionDefinition> functions = new ArrayList<>();
+    private RectWidget rect;
 
     public CodeEditor(Space space) {
         filePath = Path.of("spaces").resolve(String.valueOf(space.info.id)).resolve("code.bin");
@@ -125,6 +125,22 @@ public class CodeEditor {
         });
 
         events.addListener(PlayerTickEvent.class, event -> {
+            Widget selected = getWidget(event.getPlayer(), getCursor(event.getPlayer()));
+            if ((selected instanceof NodeInputWidget widget && widget.input.type.canInset()) || selected instanceof NodeOutputWidget) {
+                Vec origin = ((ButtonWidget) selected).position;
+                double width = TextWidth.calculate(((ButtonWidget) selected).text()) / 40;
+                NamedTextColor color = selected instanceof NodeInputWidget ? NamedTextColor.DARK_RED : NamedTextColor.AQUA;
+                Bounds bounds = new Bounds(origin.add(0.05, 0.05, 0), origin.add((width + 0.05)*-1, 0.325, 0));
+
+                if (rect == null) rect = new RectWidget(inst, bounds, color);
+                else {
+                    rect.color(color);
+                    rect.update(bounds);
+                }
+            } else if (rect != null) {
+                rect.remove();
+                rect = null;
+            }
             if (!actions.containsKey(event.getPlayer())) return;
             Vec cursor = getCursor(event.getPlayer());
             actions.get(event.getPlayer()).tick(cursor);
