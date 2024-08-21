@@ -2,12 +2,13 @@ package de.blazemcworld.fireflow.node.io;
 
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.value.Value;
+import org.jetbrains.annotations.Nullable;
 
 public interface NodeIO extends Instruction {
     String getName();
     Value getType();
     boolean hasInset();
-    void inset(Object inset);
+    void inset(@Nullable Object inset);
     void setInstruction(Instruction instruction);
 
     interface In extends NodeIO {

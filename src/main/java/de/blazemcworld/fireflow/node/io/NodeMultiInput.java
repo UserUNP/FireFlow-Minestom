@@ -10,6 +10,7 @@ import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnList;
 
@@ -22,7 +23,9 @@ public class NodeMultiInput implements NodeIO.In {
     private final String name;
     private final Value type;
     private final Value listType;
-    private final List<NodeIO.Out> sources = new ArrayList<>();
+    private boolean hasInset = false;
+    private @Nullable List<NodeIO.Out> sources = new ArrayList<>();
+    private @Nullable NodeIO.Out listSource = null;
 
     public NodeMultiInput(String name, Value type) {
         if (type == SignalValue.INSTANCE) throw new IllegalArgumentException("A multi-input cannot be of type signal!");
@@ -43,10 +46,11 @@ public class NodeMultiInput implements NodeIO.In {
 
     @Override
     public boolean hasInset() {
-        return false;
+        return hasInset;
     }
 
     public List<IntObjectPair<Object>> getInsetList() {
+        if (listSource != null || sources == null || !hasInset) throw new IllegalStateException("how");
         return IntStream.range(0, sources.size())
                 .filter(i -> sources.get(i).getInset() != null)
                 .mapToObj(i -> IntObjectPair.of(i, sources.get(i).getInset()))
@@ -54,10 +58,20 @@ public class NodeMultiInput implements NodeIO.In {
     }
 
     @Override
-    public void inset(Object inset) {
+    public void inset(@Nullable Object inset) {
+        if (listSource != null || inset == null) throw new IllegalStateException("how");
         NodeOutput o = new NodeOutput("("+type.getFullName()+")", type);
         o.inset(inset);
+        if (sources == null) sources = new ArrayList<>();
         sources.add(o);
+        hasInset = true;
+    }
+
+    public void removeInset(int index) {
+        if (listSource != null || sources == null) throw new IllegalStateException("how");
+        NodeIO.Out o = sources.get(index);
+        if (!o.hasInset()) throw new IllegalArgumentException("Source " + index + " does not contain an inset!");
+        sources.remove(index);
     }
 
     @Override
@@ -67,11 +81,20 @@ public class NodeMultiInput implements NodeIO.In {
 
     @Override
     public void prepare(NodeCompiler ctx) {
+        if (sources == null) {
+            if (listSource == null) throw new IllegalStateException("how");
+            ctx.prepare(listSource);
+            return;
+        }
         for (NodeIO.Out s : sources) ctx.prepare(s);
     }
 
     @Override
     public InsnList compile(NodeCompiler ctx, int usedVars) {
+        if (sources == null) {
+            if (listSource == null) throw new IllegalStateException("how");
+            return ctx.compile(listSource, usedVars);
+        }
         Instruction[] instructions = new Instruction[sources.size()];
         Instruction list = new RawInstruction(listType.getType(), listType.compile(null));
         for (int i = 0; i < sources.size(); i++) {
@@ -96,7 +119,14 @@ public class NodeMultiInput implements NodeIO.In {
 
     @Override
     public void connectValue(NodeIO.Out source) {
+        if (source instanceof ListValue l) {
+            if (l != listType) throw new IllegalStateException("Attempted to connect values of incompatible types!");
+            sources = null;
+            listSource = source;
+            return;
+        }
         if (source.getType() != type) throw new IllegalStateException("Attempted to connect values of incompatible types!");
+        if (sources == null) sources = new ArrayList<>();
         sources.add(source);
     }
 
@@ -108,9 +138,5 @@ public class NodeMultiInput implements NodeIO.In {
     @Override
     public boolean hasDefault() {
         return false;
-    }
-
-    public int getSourcesCount() {
-        return sources.size();
     }
 }

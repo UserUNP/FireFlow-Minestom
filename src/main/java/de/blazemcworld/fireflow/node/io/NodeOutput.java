@@ -5,6 +5,7 @@ import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.compiler.instruction.RawInstruction;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnList;
 
@@ -39,7 +40,7 @@ public class NodeOutput implements NodeIO.Out {
         inset = null;
     }
 
-    public void inset(Object inset) {
+    public void inset(@Nullable Object inset) {
         if (type == SignalValue.INSTANCE) throw new IllegalStateException("Can't set inset on signal output!");
         this.inset = inset;
         instruction = null;

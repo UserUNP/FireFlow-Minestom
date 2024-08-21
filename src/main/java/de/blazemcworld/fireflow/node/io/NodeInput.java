@@ -4,6 +4,7 @@ import de.blazemcworld.fireflow.compiler.NodeCompiler;
 import de.blazemcworld.fireflow.compiler.instruction.Instruction;
 import de.blazemcworld.fireflow.value.SignalValue;
 import de.blazemcworld.fireflow.value.Value;
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.InsnList;
 
@@ -42,7 +43,7 @@ public class NodeInput implements NodeIO.In {
         this.source = source;
     }
 
-    public void inset(Object value) {
+    public void inset(@Nullable Object value) {
         if (value == null) {
             source = null;
             return;
