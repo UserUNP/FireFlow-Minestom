@@ -16,6 +16,7 @@ public interface NodeIO extends Instruction {
         void connectValue(Out source);
         NodeInput withDefault(Object value);
         boolean hasDefault();
+        Object getInset();
     }
 
     interface Out extends NodeIO {

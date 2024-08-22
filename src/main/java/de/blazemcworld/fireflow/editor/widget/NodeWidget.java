@@ -46,7 +46,7 @@ public class NodeWidget implements Widget {
         for (NodeIO.In input : node.inputs) {
             String text;
             if (input.getInset() != null) {
-                text = "⏹ " + input.type.formatInset(input.getInset());
+                text = "⏹ " + ((NodeInput) input).type.formatInset(input.getInset());
             } else {
                 text = "○ " + input.getName();
             }
