@@ -139,4 +139,9 @@ public class NodeMultiInput implements NodeIO.In {
     public boolean hasDefault() {
         return false;
     }
+
+    @Override
+    public Object getInset() {
+        return null;
+    }
 }

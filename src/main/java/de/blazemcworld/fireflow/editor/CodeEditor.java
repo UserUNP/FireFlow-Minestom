@@ -126,7 +126,7 @@ public class CodeEditor {
 
         events.addListener(PlayerTickEvent.class, event -> {
             Widget selected = getWidget(event.getPlayer(), getCursor(event.getPlayer()));
-            if ((selected instanceof NodeInputWidget widget && widget.input.type.canInset()) || selected instanceof NodeOutputWidget) {
+            if ((selected instanceof NodeInputWidget widget && ((NodeInput) widget.input).type.canInset()) || selected instanceof NodeOutputWidget) {
                 Vec origin = ((ButtonWidget) selected).position;
                 double width = TextWidth.calculate(((ButtonWidget) selected).text()) / 40;
                 NamedTextColor color = selected instanceof NodeInputWidget ? NamedTextColor.DARK_RED : NamedTextColor.AQUA;

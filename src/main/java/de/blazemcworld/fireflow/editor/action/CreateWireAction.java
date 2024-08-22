@@ -8,6 +8,7 @@ import de.blazemcworld.fireflow.editor.Widget;
 import de.blazemcworld.fireflow.editor.widget.*;
 import de.blazemcworld.fireflow.node.*;
 import de.blazemcworld.fireflow.node.io.NodeIO;
+import de.blazemcworld.fireflow.node.io.NodeInput;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
@@ -66,7 +67,7 @@ public class CreateWireAction implements EditorAction {
             return;
         }
         if (selected instanceof NodeOutputWidget other && nodeInput != null) {
-            if (other.output.type != nodeInput.getType()) return;
+            if (((NodeInput) other.output).type != nodeInput.getType()) return;
 
             if (nodeInput.getType() == SignalValue.INSTANCE) {
                 other.disconnect();

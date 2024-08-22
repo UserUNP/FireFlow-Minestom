@@ -3,6 +3,7 @@ package de.blazemcworld.fireflow.editor.widget;
 import de.blazemcworld.fireflow.editor.CodeEditor;
 import de.blazemcworld.fireflow.editor.EditorAction;
 import de.blazemcworld.fireflow.editor.Widget;
+import de.blazemcworld.fireflow.node.io.NodeInput;
 import de.blazemcworld.fireflow.value.SignalValue;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.Player;
@@ -24,13 +25,13 @@ public class WireWidget implements Widget {
         this.relays = relays;
 
         LineWidget last = new LineWidget(inst);
-        last.color = input.input.type.getColor();
+        last.color = ((NodeInput) input.input).type.getColor();
         last.from = input.position.add(-0.1, 0.2, 0);
         for (Vec point : relays) {
             last.to = point;
             lines.add(last);
             last = new LineWidget(inst);
-            last.color = input.input.type.getColor();
+            last.color = ((NodeInput) input.input).type.getColor();
             last.from = point;
         }
         last.to = output.position.add(-output.bounds().size().x() + 0.05, 0.2, 0);
@@ -78,7 +79,7 @@ public class WireWidget implements Widget {
             }
             index++;
         }
-        if (input.input.type == SignalValue.INSTANCE) {
+        if (((NodeInput) input.input).type == SignalValue.INSTANCE) {
             output.disconnect();
         } else {
             input.disconnect();
