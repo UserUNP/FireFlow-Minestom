@@ -53,6 +53,7 @@ public class NodeInput implements NodeIO.In {
     }
 
     public Object getInset() {
+        if (source == null) return null;
         return source.getInset();
     }
 
