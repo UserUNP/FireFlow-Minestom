@@ -4,3 +4,6 @@
 FireFlow is a Minecraft Server, using [Minestom](https://minestom.net/), with the goal to provide a beginner-friendly coding experience by having a flow-chart based system.
 
 For those interested, there also is a [Discord Invite](https://discord.gg/E5M6acTDux).
+
+# Fork
+This fork attempts to add user defined structs and struct initialization nodes, nodes search widget, and rewriting the node categories widget code.
